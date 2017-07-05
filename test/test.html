@@ -9,34 +9,55 @@
     <script src="smartjq.js"></script>
     <!--<script src="jquery-2.1.3.js"></script>-->
     <script src="test.js"></script>
-    <style>
-        mytag {
-            display: block;
-            color: green;
-        }
-    </style>
 </head>
 
 <body>
-    <!--最初始的注册元素-->
-    <!--<mytag id="tarele">{{a}}:
-        <div style="background-color:red;color:white;" sv-content>asdasd</div>
-    </mytag>-->
-
-    <div>haha1</div>
-    <mytag sv-ele id="aa" sa="bb" sb="ccc">haha2</mytag>
-    haha3
-    <mytag sv-ele>haha4</mytag>
-    <div>haha5</div>
+    <div>test1</div>
+    <div><span>asdasd</span>test2</div>
+    <mytag id="a">
+        <span style="color:red;">{{aa}}=></span><span style="color:green;" sv-content></span>
+    </mytag>
+    <div>test3</div>
+    <br>
+    <br>
+    <br>
+    <mytag sv-ele id="b">haha1</mytag>
+    <br>
+    <mytag sv-ele id="c">ouou2</mytag>
+    <br>
+    <mytag sv-ele id="f">
+        <mytag sv-ele id="g">ggggggg2</mytag>
+    </mytag>
+    <br>
 </body>
 <script>
-    //注册了一个叫mytag的元素
-    var aa = sv.register({
-        temp: '<mytag>我是哈哈:<div style="background-color:red;color:white;" sv-content></div></mytag>'
+    sv.register({
+        ele: $('#a'),
+        data: {
+            aa: "mytag"
+        },
+        ready: function() {
+            var $this = $(this);
+            console.log('$this =>', $this);
+        }
     });
 
-    //添加一个mytag
-    $('body').append('<mytag sv-ele>kkkkkk</mytag>');
+    // var b = $('#b');
+    // console.log('b =>', b);
+
+    // $('body').append('<mytag sv-ele id="d">cc3</mytag>')
+
+    // $('div:eq(1),#b').append('<div><mytag class="testcc" sv-ele>cc4</mytag></div>')
+
+    // //替换内容
+    // b.before('<mytag sv-ele id="h">hhhh3</mytag>');
+
+    // $('#c').replaceWith("ccccccccccc");
+
+    //包围
+    // $('#c').replaceWith('<mytag sv-ele id="i">iii333</mytag>');
+
+    $('#c').wrap('<mytag sv-ele id="j">j4</mytag>');
 </script>
 
 </html>
