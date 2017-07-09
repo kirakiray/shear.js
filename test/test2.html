@@ -31,40 +31,27 @@
     <br>
 </body>
 <script>
+    var i = 1;
     sv.register({
         ele: $('#a'),
+        //与属性绑定的数据
+        attrs: [],
         data: {
             aa: "mytag"
         },
         render: function($this) {
             console.log('$this =>', $this);
+            (function(i) {
+                setTimeout(function() {
+                    $this.aa = "mytag" + i;
+                }, 1000 * i);
+            })(i);
+            i++;
         }
     });
 
     var b = $('#b');
-    // console.log('b =>', b);
-
-    $('body').append('<mytag sv-ele id="d">cc3</mytag>')
-
-    $('div:eq(1),#b').append('<div><mytag class="testcc" sv-ele>cc4</mytag></div>')
-
-    // //替换内容
-    b.before('<mytag sv-ele id="h">hhhh3</mytag>');
-
-    // $('#c').replaceWith("ccccccccccc");
-
-    //包围
-    // $('#c').replaceWith('<mytag sv-ele id="i">iii333</mytag>');
-
-    $('#c').wrap('<mytag sv-ele id="j">j4</mytag>');
-
-    $('<mytag sv-ele id="j">j4</mytag>').insertAfter('#c');
-
-    $('div').wrapAll('<mytag sv-ele id="j">j4</mytag>');
-
-    // $('div').wrap(function() {
-    //     return '<mytag sv-ele>k4 </mytag>';
-    // });
+    console.log('b =>', b);
 </script>
 
 </html>

@@ -8,6 +8,7 @@
     // function
     var makearray = $.makearray;
     var getType = $.type;
+    var each = $.each;
 
     //转换字符串到html对象
     var transToEles = function(str) {
@@ -25,8 +26,10 @@
         var oData = this._data = {};
 
         var _this = this;
-        $.each(data, function(k, v) {
-            _this.defineData(k, {
+
+        //设定默认数据
+        each(data, function(k, v) {
+            _this.define(k, {
                 set: function(val) {
                     oData[k] = val;
 
@@ -41,6 +44,24 @@
                 }
             });
         });
+
+        //绑定设定数据方法
+        _this.set = function(k, value) {
+            //判断是否存在，不存在才设定
+            if (k in _this) {
+                console.log('the value setted');
+            } else {
+                oData[k] = value;
+                _this.define(k, {
+                    set: function(val) {
+                        oData[k] = val;
+                    },
+                    get: function() {
+                        return oData[k];
+                    }
+                });
+            }
+        };
     };
     var $_fn = $.fn;
     var SmartViewFn = SmartView.prototype = Object.create($_fn);
@@ -52,7 +73,7 @@
             tar.push(ele);
             return tar;
         },
-        defineData: function(key, option) {
+        define: function(key, option) {
             var oType = getType(option);
             switch (oType) {
                 case "function":
@@ -69,8 +90,20 @@
             }
         },
         //检测数值变动
-        watch: function(keyname, callback) {}
+        watch: function(keyname, callback) {},
+        unwatch: function(keyname, callback) {}
     });
+
+
+    var bInit = $_fn.init;
+
+    //还原一个无影响的smartJQ
+    var smartJQ = function(selector, context) {
+        return this.init(selector, context);
+    };
+    var bfn = Object.create($_fn);
+    bfn.init = bInit;
+    smartJQ.prototype = bfn;
 
     // main
     //渲染元素
@@ -95,7 +128,7 @@
 
             //初始化$content
             var $content = ele.querySelector('[sv-content]');
-            svFnData.$content = $content;
+            svFnData.$content = new smartJQ($content);
 
             //还原元素
             childNodes.forEach(function(element) {
@@ -104,7 +137,7 @@
 
             //初始化 sv-span 元素
             var svspans = svFnData._svspans = {};
-            $.each(ele.querySelectorAll('sv-span'), function(i, e) {
+            each(ele.querySelectorAll('sv-span'), function(i, e) {
                 //替换sv-span
                 var textnode = document.createTextNode("");
                 e.parentNode.insertBefore(textnode, e);
@@ -116,7 +149,7 @@
 
             //渲染完毕后进行一次数据设定
             var svdata = svFnData.init(ele);
-            $.each(tagdata.data, function(k, v) {
+            each(tagdata.data, function(k, v) {
                 svdata[k] = v;
             });
 
@@ -124,70 +157,17 @@
             ele.setAttribute('sv-render', 1);
             ele.svRender = 1;
 
+            //执行render函数
+            tagdata.render(svdata);
+
             //去除渲染前标识
             ele.removeAttribute('sv-ele');
         }
     };
 
-    var register = function(options) {
-        var defaults = {
-            //模板文本
-            temp: "",
-            // 需要监听的属性
-            props: [],
-            //自带默认数据
-            data: {},
-            //每次初始化都会执行的函数
-            ready: ""
-        };
-        // 合并选项
-        $.extend(defaults, options);
-
-        //获取tag
-        var tagname, code, ele;
-        if (defaults.temp) {
-            debugger;
-        } else if (defaults.ele) {
-            ele = $(defaults.ele)[0];
-            tagname = ele.tagName.toLowerCase();
-            $.each(ele.querySelectorAll("*"), function(i, e) {
-                e.setAttribute('sv-shadow', "");
-            });
-            code = ele.innerHTML;
-        } else {
-            return;
-        }
-
-        //准换自定义字符串数据
-        var darr = code.match(/{{.+?}}/g);
-        darr.forEach(function(e) {
-            var key = /{{(.+?)}}/.exec(e);
-            if (key) {
-                code = code.replace(e, '<sv-span sv-shadow svkey="' + key[1] + '"></sv-span>');
-            }
-        });
-
-        //注册数据
-        tagMapData[tagname] = {
-            code: code,
-            props: defaults.props,
-            data: defaults.data,
-            ready: defaults.ready
-        };
-
-        //获取需要渲染的元素进行渲染
-        // $(tagname + '[sv-ele]');
-        $(tagname + '[sv-ele]').each(function(i, e) {
-            renderEle(e);
-        });
-
-        console.log('tagname=>', tagname);
-    };
-
     // 监听初始化jQuery函数，修正返回的实例对象
     // 在判断是只有一个 sv元素的时候，返回sv实例对象
-    var bInit = $.fn.init;
-    $.fn.init = function(selector, context) {
+    $_fn.init = function(selector, context) {
         // 继承先前的方法
         var obj = bInit.call(this, selector, context);
 
@@ -202,7 +182,7 @@
 
             //判断是否有子未渲染元素
             var subEle = e.querySelectorAll && e.querySelectorAll('[sv-ele]');
-            subEle && $.each(subEle, function(i, e) {
+            subEle && each(subEle, function(i, e) {
                 renderEle(e);
             });
 
@@ -232,10 +212,66 @@
         return obj;
     };
 
+    var register = function(options) {
+        var defaults = {
+            //模板文本
+            temp: "",
+            ele: "",
+            // 需要监听的属性
+            props: [],
+            //自带默认数据
+            data: {},
+            //每次初始化都会执行的函数
+            render: ""
+        };
+        // 合并选项
+        $.extend(defaults, options);
+
+        //获取tag
+        var tagname, code, ele;
+        if (defaults.temp) {
+            debugger;
+        } else if (defaults.ele) {
+            ele = $(defaults.ele)[0];
+            tagname = ele.tagName.toLowerCase();
+            each(ele.querySelectorAll("*"), function(i, e) {
+                e.setAttribute('sv-shadow', "");
+            });
+            code = ele.innerHTML;
+        } else {
+            return;
+        }
+
+        //准换自定义字符串数据
+        var darr = code.match(/{{.+?}}/g);
+        darr.forEach(function(e) {
+            var key = /{{(.+?)}}/.exec(e);
+            if (key) {
+                code = code.replace(e, '<sv-span sv-shadow svkey="' + key[1] + '"></sv-span>');
+            }
+        });
+
+        //注册数据
+        tagMapData[tagname] = {
+            code: code,
+            props: defaults.props,
+            data: defaults.data,
+            render: defaults.render
+        };
+
+        //获取需要渲染的元素进行渲染
+        // $(tagname + '[sv-ele]');
+        $(tagname + '[sv-ele]').each(function(i, e) {
+            renderEle(e);
+        });
+
+        console.log('tagname=>', tagname);
+    };
+
     //修正原jquery方法
-    ["append", "prepend", "before", "after", "wrap"].forEach(function(e) {
-        var o_fun = $.fn[e];
-        $.fn[e] = function(arg) {
+    ["append", "prepend", "before", "after"].forEach(function(e) {
+        var o_fun = $_fn[e];
+        $_fn[e] = function(arg) {
             //设置辅助属性ectype
             this._ec_type = e;
 
@@ -253,8 +289,8 @@
         };
     });
 
-    var o_ec = $.fn._ec;
-    $.fn._ec = function(ele, targets, func) {
+    var o_ec = $_fn._ec;
+    $_fn._ec = function(ele, targets, func) {
         //获取使用的函数名
         var ec_type = targets._ec_type || ele._ec_type;
 
@@ -263,18 +299,9 @@
             case "prepend":
                 // append 的话判断是否sv渲染元素，是的话替换内部对象
                 o_ec.call(this, ele, targets, function(e, tar) {
+                    $(e);
                     if (tar.svRender) {
-                        func(e, tar._svData.$content);
-                    } else {
-                        func(e, tar);
-                    }
-                });
-                break;
-            case "wrap":
-                o_ec.call(this, ele, targets, function(e, tar) {
-                    if (e.svRender) {
-                        func(e, tar);
-                        e._svData.$content.appendChild(tar);
+                        func(e, tar._svData.$content[0]);
                     } else {
                         func(e, tar);
                     }
@@ -286,6 +313,32 @@
                     func(e, tar);
                 });
         }
+    };
+
+    ["wrapInner", "wrap"].forEach(function(e) {
+        var o_fun = $_fn[e];
+        $_fn[e] = function(arg) {
+            // 继承运行
+            var reobj = o_fun.call(this, arg);
+
+            // 初始化操作
+            reobj.find('[sv-ele]');
+            reobj.parent();
+
+            return reobj;
+        };
+    });
+
+    //直接替换empty方法
+    $.empty = function() {
+        each(this, function(i, e) {
+            if (e.svRender) {
+                e._svData.$content[0].innerHTML = "";
+            } else {
+                e.innerHTML = "";
+            }
+        });
+        return this;
     };
 
     var sv = {
