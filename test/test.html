@@ -6,16 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>test</title>
-    <script src="smartjq.js"></script>
+    <script src="smartjq-recommend.js"></script>
     <!--<script src="jquery-2.1.3.js"></script>-->
-    <script src="test.js"></script>
+    <script src="../src/smartView.js"></script>
 </head>
 
 <body>
     <div>test1</div>
     <div><span>asdasd</span>test2</div>
     <mytag id="a">
-        <span style="color:red;">{{aa}}=></span><span style="color:green;" sv-content></span>
+        <div><span style="color:red;">{{aa}}=>{{aa}}</span></div>
+        <div style="color:green;" sv-content></div>
+        <div sv-tar="kaka">
+            <input type="text" sv-module="aa">
+        </div>
     </mytag>
     <div>test3</div>
     <br>
@@ -23,7 +27,7 @@
     <br>
     <mytag sv-ele id="b">haha1</mytag>
     <br>
-    <mytag sv-ele id="c">ouou2</mytag>
+    <mytag sv-ele aa="aaaaaaa" id="c">ouou2</mytag>
     <br>
     <mytag sv-ele id="f">
         <mytag sv-ele id="g">ggggggg2</mytag>
@@ -31,40 +35,52 @@
     <br>
 </body>
 <script>
+    sv.extend({
+        tag: "mytag",
+        render: function($this) {
+
+        }
+    });
+
+
+    var i = 1;
     sv.register({
         ele: $('#a'),
+        //与属性绑定的数据
+        attrs: ["aa", "bb"],
         data: {
+            // 默认数据
             aa: "mytag"
         },
         render: function($this) {
             console.log('$this =>', $this);
+
+            // 重新设定值
+            $this.set('ha', function() {
+                console.log('ha', this);
+                this.aa = "卡卡罗特";
+            });
+
+            (function(i) {
+                setTimeout(function() {
+                    $this.aa = "mytag" + i;
+                }, 1000 * i);
+            })(i);
+            i++;
         }
     });
 
     var b = $('#b');
-    // console.log('b =>', b);
 
-    $('body').append('<mytag sv-ele id="d">cc3</mytag>')
+    b.watch('aa', function warchfun(oldval, newval) {
+        console.log('变动', oldval, newval);
+        setTimeout(function() {
+            b.aa = "有变动2";
+        }, 2000);
+        b.unwatch('aa', warchfun);
+    });
 
-    $('div:eq(1),#b').append('<div><mytag class="testcc" sv-ele>cc4</mytag></div>')
-
-    // //替换内容
-    b.before('<mytag sv-ele id="h">hhhh3</mytag>');
-
-    // $('#c').replaceWith("ccccccccccc");
-
-    //包围
-    // $('#c').replaceWith('<mytag sv-ele id="i">iii333</mytag>');
-
-    $('#c').wrap('<mytag sv-ele id="j">j4</mytag>');
-
-    $('<mytag sv-ele id="j">j4</mytag>').insertAfter('#c');
-
-    $('div').wrapAll('<mytag sv-ele id="j">j4</mytag>');
-
-    // $('div').wrap(function() {
-    //     return '<mytag sv-ele>k4 </mytag>';
-    // });
+    console.log('b =>', b);
 </script>
 
 </html>
