@@ -25,57 +25,7 @@
     };
 
     // SmartView 的原型链对象
-    // var SmartView = function(data) {
-    var SmartView = function() {
-        //原始数据寄存对象
-        // var oData = this._data = {};
-        var oData = {};
-
-        // watch 记录数组
-        this._watchs = {};
-
-        var _this = this;
-
-        //绑定设定数据方法
-        _this.set = function(k, value) {
-            //判断是否存在，不存在才设定
-            if (k in this) {
-                console.warn('the value has been setted');
-                this[k] = value;
-            } else {
-                oData[k] = value;
-                Object.defineProperty(_this, k, {
-                    get: function() {
-                        return oData[k];
-                    },
-                    set: function(val) {
-                        // 分为私有和公用的
-                        var data = {
-                            // before
-                            b: oData[k],
-                            // after
-                            a: val
-                        };
-
-                        // 触发修改数据事件
-                        this.triggerHandler("_sv_c_" + k, data);
-
-                        // 触发watch内的事件
-                        var tars = this._watchs[k];
-                        if (tars) {
-                            tars.forEach(function(e) {
-                                e(oData[k], val);
-                            });
-                        }
-
-                        // 设置真实值
-                        oData[k] = val;
-                    }
-                });
-            }
-        };
-    };
-    var SmartViewFn = SmartView.prototype = Object.create($_fn);
+    var SmartViewFn = Object.create($_fn);
     $.extend(SmartViewFn, {
         // 生成实例函数
         init: function(ele) {
@@ -85,9 +35,17 @@
             return tar;
         },
         // 检测数值变动
-        watch: function(keyname, callback) {
+        watch: function(keyname, callback, times) {
+            if (times == 0) {
+                // 注册0次的请打死他
+                return;
+            }
             var tars = this._watchs[keyname] || (this._watchs[keyname] = []);
-            tars.push(callback);
+            tars.push({
+                t: times || Infinity,
+                c: callback
+            });
+            // tars.push(callback);
         },
         // 取消检测变动函数
         unwatch: function(keyname, callback) {
@@ -106,6 +64,77 @@
             return $$(expr, this[0]);
         }
     });
+
+    // smartView的set方法
+    var smartView_set = function(k, value) {
+        //判断是否存在，不存在才设定
+        if (k in this) {
+            console.warn('the value has been setted');
+            this[k] = value;
+        } else {
+            this._data[k] = value;
+            Object.defineProperty(this, k, {
+                get: function() {
+                    return this._data[k];
+                },
+                set: function(val) {
+                    // 分为私有和公用的
+                    var data = {
+                        // before
+                        b: this._data[k],
+                        // after
+                        a: val
+                    };
+                    var _this = this;
+
+                    // 触发修改数据事件
+                    _this.triggerHandler("_sv_c_" + k, data);
+
+                    // 触发 watch 绑定事件
+                    var tars = _this._watchs[k];
+                    var new_tars = [];
+                    if (tars) {
+                        tars.forEach(function(e) {
+                            if (e.t > 0) {
+                                e.t--;
+                            }
+                            e.c(_this._data[k], val);
+                            if (e.t > 0) {
+                                new_tars.push(e);
+                            }
+                        });
+                    }
+                    _this._watchs[k] = new_tars;
+
+                    // 设置真实值
+                    _this._data[k] = val;
+
+                    // _this = null;
+                }
+            });
+        }
+    };
+
+    // 生成专用smartview Class
+    var createSmartViewClass = function(proto) {
+        // SmartView 的原型链对象
+        var SmartView = function() {
+            //绑定设定数据方法
+            this.set = smartView_set.bind(this);
+        };
+
+        // 继承方法
+        var nFn = Object.create(SmartViewFn);
+        $.extend(nFn, proto);
+
+        // watch 事件记对象
+        nFn._watchs = [];
+        nFn._data = {};
+
+        SmartView.prototype = nFn;
+
+        return SmartView;
+    };
 
     // main
     //渲染元素
@@ -126,8 +155,7 @@
             ele.innerHTML = tagdata.code;
 
             //渲染数据对象
-            // var svFnData = new SmartView(tagdata.data);
-            var svFnData = new SmartView();
+            var svFnData = new tagdata.sv();
             ele._svData = svFnData;
 
             //初始化$content
@@ -140,7 +168,7 @@
             });
 
             //初始化 sv-span 元素
-            var svspans = svFnData._svspan = {};
+            var svspans = {};
             each(ele.querySelectorAll('sv-span'), function(i, e) {
                 //替换sv-span
                 var textnode = document.createTextNode("");
@@ -214,7 +242,7 @@
                     }
                 }
 
-                //判断是否存在，不存在就set
+                // 判断是否存在，不存在就set
                 if (!(k in svEle)) {
                     svEle.set(k, "");
                     ele.setAttribute(k, "");
@@ -228,18 +256,87 @@
                 });
             });
 
-            //设置已渲染信息
+            // 设置已渲染信息
             ele.setAttribute('sv-render', 1);
             ele.svRender = 1;
 
-            //去除渲染前标识
+            // 去除渲染前标识
             ele.removeAttribute('sv-ele');
 
-            //执行render函数
+            // 执行render函数
             tagdata.render(svEle);
+
+            // 判断是否extend扩展函数
+            var extendTagData = extendData[tagName];
+            if (extendTagData) {
+                extendTagData.forEach(function(e) {
+                    e.render(svEle);
+                });
+            }
         }
     };
 
+    //注册元素的方法
+    var register = function(options) {
+        var defaults = {
+            // 模板元素
+            ele: "",
+            // 需要监听的属性
+            attrs: [],
+            //自带默认数据
+            data: {},
+            // 自定义数据，不会被监听
+            proto: "",
+            //每次初始化都会执行的函数
+            render: ""
+        };
+        // 合并选项
+        $.extend(defaults, options);
+
+        //获取tag
+        var tagname, code, ele;
+        if (defaults.ele) {
+            ele = $$(defaults.ele)[0];
+            tagname = ele.tagName.toLowerCase();
+            each(ele.querySelectorAll("*"), function(i, e) {
+                e.setAttribute('sv-shadow', "");
+            });
+            code = ele.innerHTML;
+        } else {
+            return;
+        }
+
+        //准换自定义字符串数据
+        var darr = code.match(/{{.+?}}/g);
+        darr.forEach(function(e) {
+            var key = /{{(.+?)}}/.exec(e);
+            if (key) {
+                code = code.replace(e, '<sv-span sv-shadow svkey="' + key[1] + '"></sv-span>');
+            }
+        });
+
+        //注册数据
+        tagMapData[tagname] = {
+            code: code,
+            attrs: defaults.attrs,
+            data: defaults.data,
+            render: defaults.render,
+            sv: createSmartViewClass(defaults.proto)
+        };
+
+        // 清空示例元素的内部元素，渲并染示例元素
+        ele.innerHTML = "";
+        renderEle(ele);
+
+        //获取需要渲染的元素进行渲染
+        $(tagname + '[sv-ele]').each(function(i, e) {
+            renderEle(e);
+        });
+
+        console.log('tagname=>', tagname);
+    };
+
+    // 修正原jquery方法
     // 监听初始化jQuery函数，修正返回的实例对象
     // 在判断是只有一个 sv元素的时候，返回sv实例对象
     $_fn.init = function(selector, context) {
@@ -287,62 +384,9 @@
         return obj;
     };
 
-    //注册元素的方法
-    var register = function(options) {
-        var defaults = {
-            // 模板元素
-            ele: "",
-            // 需要监听的属性
-            attrs: [],
-            //自带默认数据
-            data: {},
-            //每次初始化都会执行的函数
-            render: ""
-        };
-        // 合并选项
-        $.extend(defaults, options);
+    var extendData = {};
 
-        //获取tag
-        var tagname, code, ele;
-        if (defaults.ele) {
-            ele = $$(defaults.ele)[0];
-            tagname = ele.tagName.toLowerCase();
-            each(ele.querySelectorAll("*"), function(i, e) {
-                e.setAttribute('sv-shadow', "");
-            });
-            code = ele.innerHTML;
-        } else {
-            return;
-        }
-
-        //准换自定义字符串数据
-        var darr = code.match(/{{.+?}}/g);
-        darr.forEach(function(e) {
-            var key = /{{(.+?)}}/.exec(e);
-            if (key) {
-                code = code.replace(e, '<sv-span sv-shadow svkey="' + key[1] + '"></sv-span>');
-            }
-        });
-
-        //注册数据
-        tagMapData[tagname] = {
-            code: code,
-            attrs: defaults.attrs,
-            data: defaults.data,
-            render: defaults.render
-        };
-
-        //获取需要渲染的元素进行渲染
-        $(tagname + '[sv-ele]').each(function(i, e) {
-            renderEle(e);
-        });
-
-        console.log('tagname=>', tagname);
-    };
-
-    //修正原jquery方法
-
-
+    window.extendData = extendData;
 
     // init
     var sv = {
@@ -351,12 +395,18 @@
         //扩展插件的方法
         extend: function(options) {
             var defaults = {
+                // 注册的tag
                 tag: "",
-                //每次初始化都会执行的函数
+                // 每次初始化都会执行的函数
                 render: ""
             };
             // 合并选项
             $.extend(defaults, options);
+
+            // 判断并加入数据对象
+            var extendTagData = extendData[defaults.tag] || (extendData[defaults.tag] = []);
+
+            extendTagData.push(defaults);
         }
     };
 

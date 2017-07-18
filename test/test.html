@@ -38,7 +38,7 @@
     sv.extend({
         tag: "mytag",
         render: function($this) {
-
+            // console.log('$this => ', $this);
         }
     });
 
@@ -46,20 +46,23 @@
     var i = 1;
     sv.register({
         ele: $('#a'),
-        //与属性绑定的数据
+        // 与属性绑定的数据
         attrs: ["aa", "bb"],
+        // 自定义数据，会被 watch 监听
+        // 不要在这里定义方法
         data: {
             // 默认数据
             aa: "mytag"
         },
+        // 自定义原型属性，不会被 watch 监听
+        // 用于设定默认属性方法
+        proto: {
+            log: function() {
+                console.log('log => ', this, this.aa);
+            }
+        },
         render: function($this) {
             console.log('$this =>', $this);
-
-            // 重新设定值
-            $this.set('ha', function() {
-                console.log('ha', this);
-                this.aa = "卡卡罗特";
-            });
 
             (function(i) {
                 setTimeout(function() {
@@ -74,11 +77,11 @@
 
     b.watch('aa', function warchfun(oldval, newval) {
         console.log('变动', oldval, newval);
-        setTimeout(function() {
-            b.aa = "有变动2";
-        }, 2000);
-        b.unwatch('aa', warchfun);
-    });
+        // b.unwatch('aa', warchfun);
+    }, 3);
+    setTimeout(function() {
+        b.aa = "有变动2";
+    }, 2000);
 
     console.log('b =>', b);
 </script>
