@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>dom</title>
+    <script src="smartjq-recommend.js"></script>
+    <script src="../src/smartView.js"></script>
+</head>
+
+<body>
+    <div id="a" sv-is="mytag">
+        <div><span style="color:red;">{{aa}}=>{{aa}}</span></div>
+        <div style="color:green;" sv-content></div>
+        <div sv-tar="kaka">
+            <input type="text" sv-module="aa">
+        </div>
+    </div>
+    <br>
+    <div id="example1">hahahahahahaha</div>
+    <br>
+    <mytag sv-ele class="b" aa="b1">
+        b1-1
+        <mytag sv-ele class="b2" aa="b2">
+            b2-1
+            <mytag sv-ele class="b3" aa="b3">b3</mytag>
+            b2-2
+        </mytag>
+        b1-2
+        <mytag sv-ele class="b3a" aa="b3a">b3a</mytag>
+    </mytag>
+    <br>
+</body>
+
+<script>
+    sv.register({
+        ele: $('#a'),
+        // 与属性绑定的数据
+        attrs: ["aa", "bb"],
+        // 自定义数据，会被 watch 监听
+        // 不要在这里定义方法
+        data: {
+            // 默认数据
+            aa: "mytag",
+            cc: "cc"
+        },
+        // 自定义原型属性，不会被 watch 监听
+        // 用于设定默认属性方法
+        proto: {
+            log: function() {
+                console.log('log => ', this, this.aa);
+            }
+        },
+        render: function($this) {
+            console.log('$this =>', $this);
+        }
+    });
+
+    // 修改值
+    $('.b').aa = "b1111";
+    $('.b').cc = "c你个头";
+
+    // clone方法检测
+    var c_a = $('.b').clone();
+    console.assert(c_a[0].svRender, "no svRender");
+    c_a.removeAttr('id');
+    // $('body').append(c_a);
+
+    $('#example1,.b3').append(' 我是测试文本');
+</script>
+
+</html>

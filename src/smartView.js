@@ -1,16 +1,17 @@
 (function(glo, $) {
     "use strict";
-    //base
-    //主体映射tag数据
+    // base
+    // 主体映射tag数据
     var tagMapData = {};
     window.tagMapData = tagMapData;
+    var extendData = {};
 
     // function
     var makearray = $.makearray;
     var getType = $.type;
     var each = $.each;
 
-    //class
+    // class
     var $_fn = $.fn;
     var bInit = $_fn.init;
     //还原一个无影响的smartJQ
@@ -121,6 +122,8 @@
         var SmartView = function() {
             //绑定设定数据方法
             this.set = smartView_set.bind(this);
+            this._watchs = [];
+            this._data = {};
         };
 
         // 继承方法
@@ -128,8 +131,8 @@
         $.extend(nFn, proto);
 
         // watch 事件记对象
-        nFn._watchs = [];
-        nFn._data = {};
+        // nFn._watchs = [];
+        // nFn._data = {};
 
         SmartView.prototype = nFn;
 
@@ -141,41 +144,42 @@
     var renderEle = function(ele) {
         //判断是否渲染
         var isRender = ele.svRender;
-        var tagName = ele.tagName.toLowerCase();
+        var tagName = ele.getAttribute('sv-is') || ele.tagName.toLowerCase();
 
         //获取注册信息
         var tagdata = tagMapData[tagName];
 
-        //确认没有渲染
+        // 确认没有渲染
         if (tagdata && !isRender) {
             // 获取childNode
             var childNodes = makearray(ele.childNodes);
 
-            //填充元素
+            // 填充元素
             ele.innerHTML = tagdata.code;
 
-            //渲染数据对象
+            // 渲染数据对象
             var svFnData = new tagdata.sv();
             ele._svData = svFnData;
 
-            //初始化$content
+            // 初始化$content
             var $content = ele.querySelector('[sv-content]');
             svFnData.$content = $$($content);
 
-            //还原元素
-            childNodes.forEach(function(element) {
+            // 还原元素
+            childNodes && childNodes.forEach(function(element) {
                 $content.appendChild(element);
             });
 
-            //初始化 sv-span 元素
-            var svspans = {};
+            // 初始化 sv-span 元素
+            var svspans = svFnData._svspan = {};
             each(ele.querySelectorAll('sv-span'), function(i, e) {
-                //替换sv-span
+                // 替换sv-span
                 var textnode = document.createTextNode("");
                 e.parentNode.insertBefore(textnode, e);
                 e.parentNode.removeChild(e);
+                textnode.tagcode = e.outerHTML;
 
-                //注册文本节点
+                // 注册文本节点
                 var svkey = e.getAttribute('svkey');
                 var arr = svspans[svkey] || (svspans[svkey] = []);
                 arr.push(textnode);
@@ -297,7 +301,13 @@
         var tagname, code, ele;
         if (defaults.ele) {
             ele = $$(defaults.ele)[0];
-            tagname = ele.tagName.toLowerCase();
+
+            // 查看 sv-is 属性
+            var svis = ele.getAttribute('sv-is');
+
+            // 需要注册的tag名
+            tagname = svis || ele.tagName.toLowerCase();
+
             each(ele.querySelectorAll("*"), function(i, e) {
                 e.setAttribute('sv-shadow', "");
             });
@@ -332,8 +342,6 @@
         $(tagname + '[sv-ele]').each(function(i, e) {
             renderEle(e);
         });
-
-        console.log('tagname=>', tagname);
     };
 
     // 修正原jquery方法
@@ -342,6 +350,14 @@
     $_fn.init = function(selector, context) {
         // 继承先前的方法
         var obj = bInit.call(this, selector, context);
+
+        // 判断是否sv-render元素，是的话返回一个 svRender 对象
+        if (obj.length == 1 && obj[0].svRender) {
+            var svdata = obj[0]._svData;
+            if (svdata) {
+                return svdata.init(obj[0]);
+            }
+        }
 
         // 主动渲染 sv-ele 元素
         // 并判断是否拥有sv-shadow元素，做好重新初始化工作
@@ -368,25 +384,84 @@
 
         // 过滤 sv-shadow 元素
         if (has_shadow) {
-            obj = $(notShadowEle);
-        } else {
-            notShadowEle = null;
+            obj = $$(notShadowEle);
         }
-
-        // 判断是否sv-render元素，是的话返回一个 svRender 对象
-        if (obj.length == 1 && obj[0].svRender) {
-            var svdata = obj[0]._svData;
-            if (svdata) {
-                return svdata.init(obj[0]);
-            }
-        }
+        notShadowEle = null;
 
         return obj;
     };
 
-    var extendData = {};
+    // 扩展其他方法
+    var o_clone = $.fn.clone;
+    $.fn.clone = function(isDeep) {
+        var reObj = [];
 
-    window.extendData = extendData;
+        this.each(function(i, e) {
+            // 判断是否渲染元素
+            if (e.svRender) {
+                // 深复制元素，并把sv-shadow去除，保留sv-content
+                // var nEle = $$(e.outerHTML)[0];
+                var nEle = e.cloneNode();
+                nEle.innerHTML = e.innerHTML;
+                $$('[sv-shadow]:not([sv-content])', nEle).remove();
+
+                // 置换出 sv-content 的内容
+                $$('[sv-content]', nEle).each(function() {
+                    var childs = makearray(this.childNodes);
+                    $$(this).before($$(childs)).remove();
+                });
+
+                // 渲染并设置新值
+                renderEle(nEle);
+
+                var $nEle = $(nEle);
+                each(e._svData._data, function(k, v) {
+                    $nEle[k] = v;
+                });
+
+                // 先获取组团的元素
+                var cEles = $$('[sv-render]', e);
+
+                // 渲染内部元素，并设置相同的data
+                $$('[sv-render]', nEle).each(function(i, e) {
+                    renderEle(e);
+
+                    var mapTar = cEles[i];
+
+                    var $e = $(e);
+
+                    // 接替数据
+                    each(mapTar._svData._data, function(k, v) {
+                        $e[k] = v;
+                    });
+                });
+
+                // 加入队列
+                reObj.push(nEle);
+
+                // 不要你们了
+                nEle = $nEle = cEles = null;
+            } else {
+                // 不是的话就直接旧式拷贝
+                reObj.push(o_clone.call($$(e), isDeep)[0]);
+            }
+        });
+
+        return $(reObj);
+    };
+
+    var o_append = $.fn.append;
+    $.fn.append = function(tar) {
+        this.each(function(i, e) {
+            // 判断是否渲染元素
+            if (e.svRender) {
+                o_append.call(e._svData.$content, tar);
+            } else {
+                o_append.call($$(e), tar);
+            }
+        });
+        return this;
+    };
 
     // init
     var sv = {
