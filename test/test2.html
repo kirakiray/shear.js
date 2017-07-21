@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>dom</title>
-    <script src="smartjq-recommend.js"></script>
+    <script src="smartjq.js"></script>
     <script src="../src/smartView.js"></script>
 </head>
 
@@ -39,6 +39,7 @@
         ele: $('#a'),
         // 与属性绑定的数据
         attrs: ["aa", "bb"],
+        val: "aa",
         // 自定义数据，会被 watch 监听
         // 不要在这里定义方法
         data: {
@@ -63,12 +64,32 @@
     $('.b').cc = "c你个头";
 
     // clone方法检测
-    var c_a = $('.b').clone();
-    console.assert(c_a[0].svRender, "no svRender");
-    c_a.removeAttr('id');
-    // $('body').append(c_a);
+    // var c_a = $('.b').clone();
+    // console.assert(c_a[0].svRender, "no svRender");
+    // c_a.removeAttr('id');
 
-    $('#example1,.b3').append(' 我是测试文本');
+    // $('#example1,#a').append('<mytag aa="testaa" sv-ele>testaa</mytag>');
+    // $('#example1,#a').prepend('<mytag aa="testaa" sv-ele>testaa</mytag>');
+    // appendTo 和 prependTo 也相应的OK了
+
+
+    // $('#example1,#a').before('<mytag aa="testaa" sv-ele>testaa</mytag>');
+
+
+    // $('#a').text("I am A");
+
+    // wrap 
+    $('#example1,#a').wrap('<mytag aa="testaa" sv-ele>testaa</mytag>');
+
+    // $('#example1,#a').wrapAll('<mytag aa="testaa" sv-ele>testaa</mytag>');
+
+    // $('#example1,#a').wrapInner('<mytag aa="testaa" sv-ele aa="testInner"></mytag>');
+
+    // parent
+    // var par = $('#example1').parent();
+
+    // unwrap
+    // $('#example1').unwrap();
 </script>
 
 </html>

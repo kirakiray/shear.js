@@ -63,7 +63,8 @@
         // 真实查找
         realFind: function(expr) {
             return $$(expr, this[0]);
-        }
+        },
+        svRender: 2
     });
 
     // smartView的set方法
@@ -229,6 +230,13 @@
                 sv_tar && (svFnData['$' + sv_tar] = $ele);
             });
 
+            // 绑定value
+            if (tagdata.val) {
+                svEle.on('_sv_c_' + tagdata.val, function(e, data) {
+                    ele.value = data.a;
+                });
+            }
+
             // 设定值
             each(tagdata.data, function(k, v) {
                 svEle[k] = v;
@@ -287,9 +295,11 @@
             ele: "",
             // 需要监听的属性
             attrs: [],
+            // 绑定元素value值的属性名
+            val: "",
             //自带默认数据
             data: {},
-            // 自定义数据，不会被监听
+            // 原型链对象，不会被监听
             proto: "",
             //每次初始化都会执行的函数
             render: ""
@@ -331,6 +341,7 @@
             attrs: defaults.attrs,
             data: defaults.data,
             render: defaults.render,
+            val: defaults.val,
             sv: createSmartViewClass(defaults.proto)
         };
 
@@ -392,6 +403,7 @@
     };
 
     // 扩展其他方法
+    // 关键的 clone 方法
     var o_clone = $.fn.clone;
     $.fn.clone = function(isDeep) {
         var reObj = [];
@@ -400,9 +412,7 @@
             // 判断是否渲染元素
             if (e.svRender) {
                 // 深复制元素，并把sv-shadow去除，保留sv-content
-                // var nEle = $$(e.outerHTML)[0];
-                var nEle = e.cloneNode();
-                nEle.innerHTML = e.innerHTML;
+                var nEle = e.cloneNode(true);
                 $$('[sv-shadow]:not([sv-content])', nEle).remove();
 
                 // 置换出 sv-content 的内容
@@ -450,18 +460,131 @@
         return $(reObj);
     };
 
-    var o_append = $.fn.append;
-    $.fn.append = function(tar) {
+    // 关键 parent 方法
+    var o_parent = $.fn.parent;
+    $.fn.parent = function(filter) {
+        var arr = [];
         this.each(function(i, e) {
-            // 判断是否渲染元素
-            if (e.svRender) {
-                o_append.call(e._svData.$content, tar);
-            } else {
-                o_append.call($$(e), tar);
+            var par;
+            do {
+                par = e.parentNode;
+                e = par;
             }
+            while (par.getAttribute('sv-shadow') == '')
+            arr.push(par);
         });
-        return this;
+        return $(arr);
     };
+
+    // 公用ec function
+    // var ec = function(tar, func) {
+    //     var lastId = this.length - 1;
+    //     var tarType = getType(tar);
+    //     if (tarType !== "string") {
+    //         tar = $(tar);
+    //     }
+    //     this.each(function(i, e) {
+    //         var ele = tar;
+    //         if (lastId !== i && tarType !== "string") {
+    //             ele = tar.clone();
+    //         }
+    //         // 运行独立函数
+    //         func(e, ele);
+    //     });
+
+    //     // 渲染需要渲染的节点
+    //     $('[sv-ele]');
+    // };
+
+    // append prepend appendTo prependTo
+    ['append', 'prepend', 'html', 'text', 'wrapInner'].forEach(function(e) {
+        var o_func = $.fn[e];
+        $.fn[e] = function(tar) {
+            // ec.call(this, tar, function(e, ele) {
+            //     if (e.svRender) {
+            //         o_func.call(e._svData.$content, ele);
+            //     } else {
+            //         o_func.call($$(e), ele);
+            //     }
+            // });
+
+            var lastId = this.length - 1;
+            var tarType = getType(tar);
+            if (tarType !== "string") {
+                tar = $(tar);
+            }
+            this.each(function(i, e) {
+                var ele = tar;
+                if (lastId !== i && tarType !== "string") {
+                    ele = tar.clone();
+                }
+                // 运行独立函数
+                if (e.svRender) {
+                    o_func.call(e._svData.$content, ele);
+                } else {
+                    o_func.call($$(e), ele);
+                }
+            });
+
+            // 渲染需要渲染的节点
+            $('[sv-ele]');
+
+            return this;
+        };
+    });
+
+    // after before insertAfter insertBefore replaceWith replaceAll
+    // ['after', 'before'].forEach(function(e) {
+    //     var o_func = $.fn[e];
+    //     $.fn[e] = function(tar) {
+    //         ec.call(this, tar, function(e, ele) {
+    //             o_func.call($$(e), ele);
+    //         });
+    //         return this;
+    //     };
+    // });
+
+    // wrap 
+    ['wrap', 'after', 'before'].forEach(function(e) {
+        var o_func = $.fn[e];
+        $.fn[e] = function(tar) {
+            o_func.call(this, tar);
+            $('[sv-ele]');
+            return this;
+        };
+    });
+
+    // wrapInner
+    // ['wrapInner'].forEach(function(e) {
+    //     var o_func = $.fn[e];
+    //     $.fn[e] = function(tar) {
+    //         o_func.call(this, tar);
+    //         $('[sv-ele]');
+    //         return this;
+    //     };
+    // });
+
+    // unwrap
+    // var o_unwrap = $.fn.unwrap;
+    // $.fn.unwrap = function() {
+    //     var arr = [];
+
+    //     this.each(function(i, e) {
+    //         var par = $(e).parent();
+    //         if (par.svRender) {
+    //             // 渲染元素特别操作
+    //             par.after(e);
+    //             par.remove();
+    //         } else {
+    //             arr.push(e);
+    //         }
+    //     });
+
+    //     // 不在队列的执行旧式unwrap
+    //     o_unwrap.call($(arr));
+
+    //     return this;
+    // };
 
     // init
     var sv = {
