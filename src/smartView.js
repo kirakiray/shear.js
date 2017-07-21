@@ -533,17 +533,6 @@
         };
     });
 
-    // after before insertAfter insertBefore replaceWith replaceAll
-    // ['after', 'before'].forEach(function(e) {
-    //     var o_func = $.fn[e];
-    //     $.fn[e] = function(tar) {
-    //         ec.call(this, tar, function(e, ele) {
-    //             o_func.call($$(e), ele);
-    //         });
-    //         return this;
-    //     };
-    // });
-
     // wrap 
     ['wrap', 'after', 'before'].forEach(function(e) {
         var o_func = $.fn[e];
@@ -553,38 +542,6 @@
             return this;
         };
     });
-
-    // wrapInner
-    // ['wrapInner'].forEach(function(e) {
-    //     var o_func = $.fn[e];
-    //     $.fn[e] = function(tar) {
-    //         o_func.call(this, tar);
-    //         $('[sv-ele]');
-    //         return this;
-    //     };
-    // });
-
-    // unwrap
-    // var o_unwrap = $.fn.unwrap;
-    // $.fn.unwrap = function() {
-    //     var arr = [];
-
-    //     this.each(function(i, e) {
-    //         var par = $(e).parent();
-    //         if (par.svRender) {
-    //             // 渲染元素特别操作
-    //             par.after(e);
-    //             par.remove();
-    //         } else {
-    //             arr.push(e);
-    //         }
-    //     });
-
-    //     // 不在队列的执行旧式unwrap
-    //     o_unwrap.call($(arr));
-
-    //     return this;
-    // };
 
     // init
     var sv = {

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>smartView test</title>
+    <link rel="stylesheet" href="qunit-1.15.0.css" />
+    <style>
+        .test_group {
+            margin-top: 50px;
+        }
+        
+        mytag {
+            display: block;
+        }
+    </style>
+    <script src="qunit-1.15.0.js"></script>
+    <script src="smartjq.js"></script>
+    <script src="../src/smartView.js"></script>
+</head>
+
+<body>
+    <h1 id="qunit-header">smartView test</h1>
+    <h2 id="qunit-banner"></h2>
+    <ol id="qunit-tests"></ol>
+
+    <mytag id="a" style="display:none">
+        <div><span style="color:red;">{{aa}}=>{{aa}}</span></div>
+        <div style="color:green;" sv-content></div>
+        <div sv-tar="kaka">
+            <input type="text" sv-module="aa">
+        </div>
+    </mytag>
+    <script>
+        // 注册新元素
+        sv.register({
+            ele: $('#a'),
+            // 与属性绑定的数据
+            attrs: ["aa", "bb"],
+            // 自定义数据，会被 watch 监听
+            // 不要在这里定义方法
+            data: {
+                // 默认数据
+                aa: "mytag"
+            },
+            // 自定义原型属性，不会被 watch 监听
+            // 用于设定默认属性方法
+            proto: {
+                log: function() {
+                    // console.log('log => ', this, this.aa);
+                }
+            },
+            render: function($this) {
+                // console.log('$this =>', $this);
+            }
+        });
+    </script>
+    <div class="test_group">
+        <script>
+            QUnit.test("render", function(assert) {
+                var testtag = $('<mytag sv-ele />');
+                assert.ok(testtag[0].childNodes.length > 5, 'render ok');
+            });
+        </script>
+    </div>
+
+
+
+
+</body>
+
+</html>
