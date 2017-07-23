@@ -232,13 +232,26 @@
 
             // 绑定value
             if (tagdata.val) {
+                var eleVal = "";
+                Object.defineProperty(ele, "value", {
+                    set: function(val) {
+                        svEle[tagdata.val] = val;
+                        eleVal = val;
+                    },
+                    get: function() {
+                        return eleVal;
+                    }
+                });
                 svEle.on('_sv_c_' + tagdata.val, function(e, data) {
-                    ele.value = data.a;
+                    eleVal = data.a;
                 });
             }
 
             // 设定值
             each(tagdata.data, function(k, v) {
+                if (typeof v == "object") {
+                    v = JSON.parse(JSON.stringify(v));
+                }
                 svEle[k] = v;
             });
 
@@ -362,14 +375,6 @@
         // 继承先前的方法
         var obj = bInit.call(this, selector, context);
 
-        // 判断是否sv-render元素，是的话返回一个 svRender 对象
-        if (obj.length == 1 && obj[0].svRender) {
-            var svdata = obj[0]._svData;
-            if (svdata) {
-                return svdata.init(obj[0]);
-            }
-        }
-
         // 主动渲染 sv-ele 元素
         // 并判断是否拥有sv-shadow元素，做好重新初始化工作
         var has_shadow = 0;
@@ -398,6 +403,14 @@
             obj = $$(notShadowEle);
         }
         notShadowEle = null;
+
+        // 判断是否sv-render元素，是的话返回一个 svRender 对象
+        if (obj.length == 1 && obj[0].svRender) {
+            var svdata = obj[0]._svData;
+            if (svdata) {
+                return svdata.init(obj[0]);
+            }
+        }
 
         return obj;
     };
@@ -476,60 +489,36 @@
         return $(arr);
     };
 
-    // 公用ec function
-    // var ec = function(tar, func) {
-    //     var lastId = this.length - 1;
-    //     var tarType = getType(tar);
-    //     if (tarType !== "string") {
-    //         tar = $(tar);
-    //     }
-    //     this.each(function(i, e) {
-    //         var ele = tar;
-    //         if (lastId !== i && tarType !== "string") {
-    //             ele = tar.clone();
-    //         }
-    //         // 运行独立函数
-    //         func(e, ele);
-    //     });
-
-    //     // 渲染需要渲染的节点
-    //     $('[sv-ele]');
-    // };
-
     // append prepend appendTo prependTo
     ['append', 'prepend', 'html', 'text', 'wrapInner'].forEach(function(e) {
         var o_func = $.fn[e];
         $.fn[e] = function(tar) {
-            // ec.call(this, tar, function(e, ele) {
-            //     if (e.svRender) {
-            //         o_func.call(e._svData.$content, ele);
-            //     } else {
-            //         o_func.call($$(e), ele);
-            //     }
-            // });
+            if (tar != undefined) {
+                var lastId = this.length - 1;
+                var tarType = getType(tar);
+                if (tarType !== "string") {
+                    tar = $(tar);
+                }
+                this.each(function(i, e) {
+                    var ele = tar;
+                    if (lastId !== i && tarType !== "string") {
+                        ele = tar.clone();
+                    }
+                    // 运行独立函数
+                    if (e.svRender) {
+                        o_func.call(e._svData.$content, ele);
+                    } else {
+                        o_func.call($$(e), ele);
+                    }
+                });
 
-            var lastId = this.length - 1;
-            var tarType = getType(tar);
-            if (tarType !== "string") {
-                tar = $(tar);
+                // 渲染需要渲染的节点
+                $('[sv-ele]');
+
+                return this;
+            } else {
+                return o_func.apply(this, arguments);
             }
-            this.each(function(i, e) {
-                var ele = tar;
-                if (lastId !== i && tarType !== "string") {
-                    ele = tar.clone();
-                }
-                // 运行独立函数
-                if (e.svRender) {
-                    o_func.call(e._svData.$content, ele);
-                } else {
-                    o_func.call($$(e), ele);
-                }
-            });
-
-            // 渲染需要渲染的节点
-            $('[sv-ele]');
-
-            return this;
         };
     });
 

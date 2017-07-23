@@ -26,29 +26,49 @@
     <ol id="qunit-tests"></ol>
 
     <mytag id="a" style="display:none">
-        <div><span style="color:red;">{{aa}}=>{{aa}}</span></div>
+        <div><span style="color:red;">{{a}}=>{{a}}</span></div>
         <div style="color:green;" sv-content></div>
-        <div sv-tar="kaka">
-            <input type="text" sv-module="aa">
+        <div sv-tar="kaka" data-test="I am kaka">
+            <input type="text" sv-module="a">
         </div>
+    </mytag>
+
+
+    <mytag sv-ele class="b" a="b1">
+        b1-1
+        <mytag sv-ele class="b2" a="b2">
+            b2-1
+            <mytag sv-ele class="b3" a="b3">b3</mytag>
+            b2-2
+        </mytag>
+        b1-2
+        <mytag sv-ele class="b3a" a="b3a">b3a</mytag>
     </mytag>
     <script>
         // 注册新元素
         sv.register({
             ele: $('#a'),
             // 与属性绑定的数据
-            attrs: ["aa", "bb"],
+            attrs: ["a", "bb"],
             // 自定义数据，会被 watch 监听
             // 不要在这里定义方法
             data: {
                 // 默认数据
-                aa: "mytag"
+                a: "mytag",
+                b: {
+                    val: "datab"
+                }
             },
+            // 获取value的属性名
+            val: "a",
             // 自定义原型属性，不会被 watch 监听
             // 用于设定默认属性方法
             proto: {
+                c: {
+                    val: "datatestObj"
+                },
                 log: function() {
-                    // console.log('log => ', this, this.aa);
+                    // console.log('log => ', this, this.a);
                 }
             },
             render: function($this) {
@@ -59,8 +79,33 @@
     <div class="test_group">
         <script>
             QUnit.test("render", function(assert) {
-                var testtag = $('<mytag sv-ele />');
+                var testtag = $('<mytag sv-ele>I am testtag</mytag>');
                 assert.ok(testtag[0].childNodes.length > 5, 'render ok');
+                assert.ok(testtag[0].value == "mytag", 'value ok');
+                assert.ok(testtag.val() == "mytag", 'value ok2');
+                assert.ok(testtag.$kaka.data('test') == "I am kaka", 'sv-tar ok');
+                assert.ok(testtag.$content.text() == "I am testtag", '$content ok');
+            });
+        </script>
+    </div>
+    <div class="test_group">
+        <script>
+            QUnit.test("data test", function(assert) {
+                var testtag1 = $('<mytag sv-ele />');
+                var testtag2 = $('<mytag sv-ele />');
+                assert.ok(testtag1.a == testtag2.a, 'data ok');
+                assert.ok(testtag1.b !== testtag2.b, 'data ok2');
+                assert.ok(testtag1.c === testtag2.c, 'data ok3');
+            });
+        </script>
+    </div>
+
+    <div class="test_group">
+        <script>
+            // 防止没有渲染
+            $('[sv-ele]');
+            QUnit.test("struct test", function(assert) {
+                assert.ok(true, 'data ok');
             });
         </script>
     </div>
