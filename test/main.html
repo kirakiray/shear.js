@@ -105,7 +105,22 @@
             // 防止没有渲染
             $('[sv-ele]');
             QUnit.test("struct test", function(assert) {
-                assert.ok(true, 'data ok');
+                // 保证不会获取到 sv-shadow 元素
+                assert.ok($('.b *').length == 3, 'struct ok');
+                assert.ok($('.b').find('*').length == 3, 'find ok');
+                assert.ok($('.b').children().length == 2, 'children ok');
+                // assert.ok($('.b').html() == 2, 'html ok');
+            });
+        </script>
+    </div>
+
+    <div class="test_group">
+        <script>
+            // 防止没有渲染
+            $('[sv-ele]');
+            QUnit.test("clone test", function(assert) {
+                var cloneEle = $('.b').clone();
+                $('body').append(cloneEle);
             });
         </script>
     </div>

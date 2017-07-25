@@ -12,6 +12,9 @@
     var each = $.each;
     var merge = $.merge;
     var isSvShadow = function(e) {
+        if (!e.getAttribute) {
+            return false;
+        }
         var svshadow = e.getAttribute("sv-shadow");
         if (svshadow == "" || !!svshadow) {
             return true;
@@ -27,6 +30,9 @@
     };
     var bfn = Object.create($_fn);
     bfn.init = bInit;
+    bfn.realFind = function(expr) {
+        return $$(expr, this[0]);
+    };
     smartJQ.prototype = bfn;
     var $$ = function(s, e) {
         return new smartJQ(s, e);
