@@ -120,6 +120,9 @@
             $('[sv-ele]');
             QUnit.test("clone test", function(assert) {
                 var cloneEle = $('.b').clone();
+                assert.ok(cloneEle.html().replace(/\s/g, "") == $('.b').html().replace(/\s/g, ""), 'html ok');
+                console.log(cloneEle.html());
+                console.log($('.b').html());
                 $('body').append(cloneEle);
             });
         </script>

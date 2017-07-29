@@ -434,14 +434,22 @@
             // 判断是否渲染元素
             if (e.svRender) {
                 // 深复制元素，并把sv-shadow去除，保留sv-content
-                var nEle = e.cloneNode(true);
-                $$('[sv-shadow]:not([sv-content])', nEle).remove();
+                // var nEle = e.cloneNode(true);
+                // $$('[sv-shadow]:not([sv-content])', nEle).remove();
 
-                // 置换出 sv-content 的内容
-                $$('[sv-content]', nEle).each(function() {
-                    var childs = makearray(this.childNodes);
-                    $$(this).before($$(childs)).remove();
-                });
+                // // 置换出 sv-content 的内容
+                // // 翻转过来，让其优先处理子DOM
+                // $$('[sv-content]', nEle).reverse().each(function() {
+                //     // var childs = makearray(this.childNodes);
+                //     var par = this.parentNode;
+                //     var tar = this;
+                //     each(this.childNodes, function(i, e) {
+                //         par.insertBefore(e, tar);
+                //     });
+                //     $$(this).remove();
+                // });
+                var nEle = e.cloneNode();
+                nEle.innerHTML = $$(e).html();
 
                 // 渲染并设置新值
                 renderEle(nEle);
@@ -575,10 +583,14 @@
                 $$('[sv-shadow]:not([sv-content])', tar).remove();
 
                 // 替换所有的 sv-content
-                $$('[sv-content]', tar).each(function(i, e) {
-                    var childs = makearray(e.childNodes);
-                    $$(e).before(childs);
-                }).remove();
+                $$('[sv-content]', tar).reverse().each(function(i, e) {
+                    var tar = this;
+                    var par = tar.parentNode;
+                    each(this.childNodes, function(i, e) {
+                        par.insertBefore(e, tar);
+                    });
+                    $$(tar).remove();
+                });
 
                 return o_func.call($$(tar));
             }
