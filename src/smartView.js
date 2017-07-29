@@ -630,6 +630,8 @@
         }
     });
 
+    // 渲染内元素添加新元素时，添加 sv-shadow 标识
+    // 下面6个方法通用部分
     var public_afer_func = function(e, setSvShadow) {
         var o_func = $.fn[e];
         $.fn[e] = function(ele) {
@@ -648,30 +650,12 @@
             return reobj;
         };
     };
-
-    // 渲染内元素添加新元素时，添加 sv-shadow 标识
     ['after', 'before', 'wrap'].forEach(function(e) {
         return public_afer_func(e, function(tar) {
             if (this.length == 1 && isSvShadow(tar)) {
                 return 1;
             }
         });
-        // var o_func = $.fn[e];
-        // $.fn[e] = function(ele) {
-        //     ele = $(ele);
-
-        //     var reobj = o_func.call(this, ele);
-
-        //     var tar = this[0];
-
-        //     // 判断当前是否单个的 sv-shadow 元素
-        //     if (this.length == 1 && isSvShadow(tar)) {
-        //         // 有的话全部转化为影子元素
-        //         ele.attr('sv-shadow', "").find("*").attr('sv-shadow', "");
-        //     }
-
-        //     return reobj;
-        // };
     });
     ['append', 'prepend', 'wrapInner'].forEach(function(e) {
         return public_afer_func(e, function(tar) {
@@ -679,28 +663,11 @@
                 return 1;
             }
         });
-        // var o_func = $.fn[e];
-        // $.fn[e] = function(ele) {
-
-        //     ele = $(ele);
-
-        //     var reobj = o_func.call(this, ele);
-
-        //     var tar = this[0];
-
-        //     // 判断当前是否单个的 sv-shadow 元素
-        //     if (this.length == 1 && isSvShadow(tar) && !hasAttr(tar, 'sv-content')) {
-        //         // 有的话全部转化为影子元素
-        //         ele.attr('sv-shadow', "").find("*").attr('sv-shadow', "");
-        //     }
-
-        //     return reobj;
-        // };
     });
 
     // empty
     $.fn.empty = function() {
-        this.forEach(function(e) {
+        each(this, function(i, e) {
             if (e.svRender) {
                 e._svData.$content[0].innerHTML = "";
             } else {

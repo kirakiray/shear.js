@@ -38,7 +38,7 @@
         b1-1
         <mytag sv-ele class="b2" a="b2">
             b2-1
-            <mytag sv-ele class="b3" a="b3">b3</mytag>
+            <mytag sv-ele class="b3" a="b3 ye ye">b3</mytag>
             b2-2
         </mytag>
         b1-2
@@ -117,6 +117,18 @@
 
     <div class="test_group">
         <script>
+            // 防止没有渲染
+            $('[sv-ele]');
+            QUnit.test("html text test", function(assert) {
+                // 保证不会获取到 sv-shadow 元素
+                assert.ok($('.b').html().search('sv-shadow') == -1, 'html ok');
+                assert.ok($('.b').text().search('b3 ye ye') == -1, 'text ok');
+            });
+        </script>
+    </div>
+
+    <div class="test_group">
+        <script>
             QUnit.test("clone test", function(assert) {
                 // 修改数据
                 $('.b').a = "I am b";
@@ -133,6 +145,7 @@
             QUnit.test("children test", function(assert) {
                 // 修改数据
                 assert.ok($('.b').children().length == 2, 'count ok');
+                assert.ok($('.b').children('.b2').length == 1, 'filter ok');
             });
         </script>
     </div>
@@ -143,7 +156,7 @@
                 // 修改数据
                 assert.ok($('.b3').parent().get(0) == $('.b2').get(0), 'parent ok');
                 assert.ok(0 in $('.b3').parent('mytag'), 'parent filter ok');
-                assert.ok(!(0 in $('.b3').parent('.aaa')), 'parent filter ok');
+                assert.ok(!(0 in $('.b3').parent('.aaa')), 'parent filter ok2');
             });
         </script>
     </div>
@@ -162,7 +175,7 @@
 
                 // 添加自定义元素
                 $mytag1.append(tag2);
-                $('body').append($mytag1);
+                // $('body').append($mytag1);
 
                 $mytag1.append('<mytag sv-ele a="tag3">mytag3</mytag>');
 
@@ -170,7 +183,9 @@
                 assert.ok($mytag1.$content.children().get(0) === tag2, 'in $content ok');
                 assert.ok($mytag1.$content.children().get(1) === $mytag1.find('*').get(1), 'in $content ok2');
                 assert.ok($mytag1.$content.children().eq(1).attr('sv-render') == 1, 'is Render');
-                $mytag1.$kaka.append('<div class="testcon">testcon</div>');
+                var testcon = $('<div class="testcon">testcon</div>');
+                $mytag1.$kaka.append(testcon);
+                assert.ok(testcon.attr('sv-shadow') == "", 'shadow element append ok');
             });
         </script>
 
@@ -194,6 +209,9 @@
                     assert.ok($mytag1.$content.children().get(1) === tag2, 'in $content ok');
                     assert.ok($mytag1.$content.children().get(0) === $mytag1.find('*').get(0), 'in $content ok2');
                     assert.ok($mytag1.$content.children().eq(0).attr('sv-render') == 1, 'is Render');
+                    var testcon = $('<div class="testcon">testcon</div>');
+                    $mytag1.$kaka.prepend(testcon);
+                    assert.ok(testcon.attr('sv-shadow') == "", 'shadow element prepend ok');
                 });
             </script>
         </div>
@@ -215,6 +233,10 @@
 
                     // 测试是不是在 $content 内
                     assert.ok($mytag1.$content.children().get(0) === tag2, 'in $content ok');
+
+                    // 添加新包围元素
+                    $mytag1.wrapInner('<mytag sv-ele class="testcon" a="testcon" />');
+                    assert.ok($mytag1.$content.children().eq(0).hasClass('testcon'), 'in $content ok2');
                 });
             </script>
         </div>
@@ -227,10 +249,15 @@
 
                     $('body').append(mytag1);
                     mytag1.wrap(mytag2);
-                    mytag2.hide();
 
                     // 测试是不是在 $content 内
                     assert.ok(mytag1.parent()[0] === mytag2[0], 'in $content ok');
+
+                    // 添加新的
+                    mytag2.wrap('<mytag sv-ele a="testcon" class="testcon"></mytag>');
+
+                    assert.ok(mytag2.parent().hasClass('testcon'), 'in $content ok2');
+                    mytag2.parent().remove();
                 });
             </script>
         </div>
