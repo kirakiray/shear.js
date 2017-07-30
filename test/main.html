@@ -262,6 +262,45 @@
             </script>
         </div>
 
+        <div class="test_group">
+            <script>
+                QUnit.test("after test", function(assert) {
+                    var testcon = $('<div><div class="sub_testcon">sub_testcon</div></div>');
+                    var mytag1 = $('<mytag sv-ele a="tag1">mytag1</mytag>');
+
+                    testcon.append(mytag1);
+
+                    // 两个元素同时添加
+                    testcon.find("*").after('<mytag sv-ele a="tag2">mytag2</mytag>');
+                    // console.log(testcon[0]);
+                    // $('body').append(testcon);
+                    assert.ok(testcon.find('mytag').length == 3, 'count ok');
+                    assert.ok(testcon.find('mytag').get(0).svRender, 'svrender ok1');
+                    assert.ok(testcon.find('mytag').get(1).svRender, 'svrender ok2');
+                    assert.ok(testcon.find('mytag').get(2).svRender, 'svrender ok3');
+                });
+            </script>
+        </div>
+
+        <div class="test_group">
+            <script>
+                QUnit.test("before test", function(assert) {
+                    var testcon = $('<div><div class="sub_testcon">sub_testcon</div></div>');
+                    var mytag1 = $('<mytag sv-ele a="tag1">mytag1</mytag>');
+
+                    testcon.append(mytag1);
+
+                    // 两个元素同时添加
+                    testcon.find("*").before('<mytag sv-ele a="tag2">mytag2</mytag>');
+                    // $('body').append(testcon);
+                    assert.ok(testcon.find('mytag').length == 3, 'count ok');
+                    assert.ok(testcon.find('mytag').get(0).svRender, 'svrender ok1');
+                    assert.ok(testcon.find('mytag').get(1).svRender, 'svrender ok2');
+                    assert.ok(testcon.find('mytag').get(2).svRender, 'svrender ok3');
+                });
+            </script>
+        </div>
+
 
 
 

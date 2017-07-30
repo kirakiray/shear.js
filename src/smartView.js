@@ -535,9 +535,6 @@
         // 重新过滤元素
         var lastId = this.length - 1;
 
-        // 判断是否属性element
-        var isElement = tar instanceof Element;
-
         // 转换元素
         tar = $(tar);
 
@@ -551,25 +548,14 @@
         });
     };
 
-    // wrap
-    var o_wrap = $.fn.wrap;
-    $.fn.wrap = function(tar) {
-        n_ec.call(this, tar, function(e, tar) {
-            if (tar.svRender) {
-                e.parentNode.insertBefore(tar[0], e);
-                tar.append(e);
-            } else {
-                o_wrap.call($$(e), tar);
-            }
-        });
-        return this;
-    };
-
     // append prepend appendTo prependTo wrapInner
     ['append', 'prepend', 'wrapInner'].forEach(function(e) {
         var o_func = $.fn[e];
         $.fn[e] = function(tar) {
             n_ec.call(this, tar, function(e, tar) {
+                if (isSvShadow(e) && !hasAttr(tar, 'sv-content')) {
+                    tar.attr('sv-shadow', "");
+                }
                 if (e.svRender) {
                     o_func.call(e._svData.$content, tar);
                 } else {
@@ -580,13 +566,34 @@
         };
     });
 
+    // wrap
+    var o_wrap = $.fn.wrap;
+    $.fn.wrap = function(tar) {
+        n_ec.call(this, tar, function(e, tar) {
+            if (isSvShadow(e)) {
+                tar.attr('sv-shadow', "");
+            }
+            if (tar.svRender) {
+                e.parentNode.insertBefore(tar[0], e);
+                tar.append(e);
+            } else {
+                o_wrap.call($$(e), tar);
+            }
+        });
+        return this;
+    };
+
     // after before replaceWith replaceAll
     ['after', 'before'].forEach(function(e) {
         var o_func = $.fn[e];
         $.fn[e] = function(tar) {
-            var reobj = o_func.call(this, tar);
-            $('[sv-ele]');
-            return reobj;
+            n_ec.call(this, tar, function(e, tar) {
+                if (isSvShadow(e)) {
+                    tar.attr('sv-shadow', "");
+                }
+                o_func.call($$(e), tar);
+            });
+            return this;
         };
     });
 
@@ -632,38 +639,38 @@
 
     // 渲染内元素添加新元素时，添加 sv-shadow 标识
     // 下面6个方法通用部分
-    var public_afer_func = function(e, setSvShadow) {
-        var o_func = $.fn[e];
-        $.fn[e] = function(ele) {
-            ele = $(ele);
+    // var public_afer_func = function(e, setSvShadow) {
+    //     var o_func = $.fn[e];
+    //     $.fn[e] = function(ele) {
+    //         ele = $(ele);
 
-            var reobj = o_func.call(this, ele);
+    //         var reobj = o_func.call(this, ele);
 
-            var tar = this[0];
+    //         var tar = this[0];
 
-            // 判断当前是否单个的 sv-shadow 元素
-            if (setSvShadow.call(this, tar)) {
-                // 有的话全部转化为影子元素
-                ele.attr('sv-shadow', "").find("*").attr('sv-shadow', "");
-            }
+    //         // 判断当前是否单个的 sv-shadow 元素
+    //         if (setSvShadow.call(this, tar)) {
+    //             // 有的话全部转化为影子元素
+    //             ele.attr('sv-shadow', "").find("*").attr('sv-shadow', "");
+    //         }
 
-            return reobj;
-        };
-    };
-    ['after', 'before', 'wrap'].forEach(function(e) {
-        return public_afer_func(e, function(tar) {
-            if (this.length == 1 && isSvShadow(tar)) {
-                return 1;
-            }
-        });
-    });
-    ['append', 'prepend', 'wrapInner'].forEach(function(e) {
-        return public_afer_func(e, function(tar) {
-            if (this.length == 1 && isSvShadow(tar) && !hasAttr(tar, 'sv-content')) {
-                return 1;
-            }
-        });
-    });
+    //         return reobj;
+    //     };
+    // };
+    // ['after', 'before', 'wrap'].forEach(function(e) {
+    //     return public_afer_func(e, function(tar) {
+    //         if (this.length == 1 && isSvShadow(tar)) {
+    //             return 1;
+    //         }
+    //     });
+    // });
+    // ['append', 'prepend', 'wrapInner'].forEach(function(e) {
+    //     return public_afer_func(e, function(tar) {
+    //         if (this.length == 1 && isSvShadow(tar) && !hasAttr(tar, 'sv-content')) {
+    //             return 1;
+    //         }
+    //     });
+    // });
 
     // empty
     $.fn.empty = function() {
