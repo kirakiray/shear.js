@@ -278,6 +278,9 @@
                     assert.ok(testcon.find('mytag').get(0).svRender, 'svrender ok1');
                     assert.ok(testcon.find('mytag').get(1).svRender, 'svrender ok2');
                     assert.ok(testcon.find('mytag').get(2).svRender, 'svrender ok3');
+
+                    mytag1.$kaka.after('<div class="test2">test2</div>');
+                    assert.ok(testcon.find('.test2').length == 0, 'shadow element ok');
                 });
             </script>
         </div>
@@ -297,6 +300,24 @@
                     assert.ok(testcon.find('mytag').get(0).svRender, 'svrender ok1');
                     assert.ok(testcon.find('mytag').get(1).svRender, 'svrender ok2');
                     assert.ok(testcon.find('mytag').get(2).svRender, 'svrender ok3');
+
+                    mytag1.$kaka.before('<div class="test2">test2</div>');
+                    assert.ok(testcon.find('.test2').length == 0, 'shadow element ok');
+                });
+            </script>
+        </div>
+
+        <div class="test_group">
+            <script>
+                QUnit.test("function dom test", function(assert) {
+                    var testCon = $('<div><mytag sv-ele class="testcon1" a="testcon1">testcon1</mytag><mytag sv-ele class="testcon2" a="testcon2">testcon2</mytag></div>');
+                    testCon.children().append(function(i, e) {
+                        assert.ok(typeof i == 'number', 'function dom arguments 1 ok');
+                        assert.ok(typeof e == 'string', 'function dom arguments 2 ok');
+                        return '<mytag sv-ele class="testcon3" a="testcon3">testcon3</mytag>';
+                    });
+                    // $('body').append(testCon);
+                    assert.ok(testCon.find('.testcon3').length == 2, 'function dom ok');
                 });
             </script>
         </div>

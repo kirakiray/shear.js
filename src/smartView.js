@@ -535,16 +535,33 @@
         // 重新过滤元素
         var lastId = this.length - 1;
 
-        // 转换元素
-        tar = $(tar);
+        var isfunction;
+        if (getType(tar) == "function") {
+            isfunction = 1;
+        } else {
+            // 转换元素
+            tar = $(tar);
+        }
 
         this.each(function(i, e) {
-            var ele = tar;
-            if (lastId !== i && tar instanceof $) {
-                ele = tar.clone();
-            }
+            if (isfunction) {
+                var redata, $e = $(e);
+                if (e.svRender) {
+                    redata = tar(i, $e.html());
+                } else {
+                    redata = tar(i, $e.html());
+                }
+                if (redata) {
+                    $e.append(redata);
+                }
+            } else {
+                var ele = tar;
+                if (lastId !== i && tar instanceof $) {
+                    ele = tar.clone();
+                }
 
-            func(e, ele);
+                func(e, ele);
+            }
         });
     };
 
@@ -636,41 +653,6 @@
             }
         }
     });
-
-    // 渲染内元素添加新元素时，添加 sv-shadow 标识
-    // 下面6个方法通用部分
-    // var public_afer_func = function(e, setSvShadow) {
-    //     var o_func = $.fn[e];
-    //     $.fn[e] = function(ele) {
-    //         ele = $(ele);
-
-    //         var reobj = o_func.call(this, ele);
-
-    //         var tar = this[0];
-
-    //         // 判断当前是否单个的 sv-shadow 元素
-    //         if (setSvShadow.call(this, tar)) {
-    //             // 有的话全部转化为影子元素
-    //             ele.attr('sv-shadow', "").find("*").attr('sv-shadow', "");
-    //         }
-
-    //         return reobj;
-    //     };
-    // };
-    // ['after', 'before', 'wrap'].forEach(function(e) {
-    //     return public_afer_func(e, function(tar) {
-    //         if (this.length == 1 && isSvShadow(tar)) {
-    //             return 1;
-    //         }
-    //     });
-    // });
-    // ['append', 'prepend', 'wrapInner'].forEach(function(e) {
-    //     return public_afer_func(e, function(tar) {
-    //         if (this.length == 1 && isSvShadow(tar) && !hasAttr(tar, 'sv-content')) {
-    //             return 1;
-    //         }
-    //     });
-    // });
 
     // empty
     $.fn.empty = function() {
