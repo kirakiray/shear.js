@@ -264,6 +264,23 @@
 
         <div class="test_group">
             <script>
+                QUnit.test("wrapAll test", function(assert) {
+                    var testcon = $('<div><div class="sub_testcon">sub_testcon</div></div>');
+                    var mytag1 = $('<mytag sv-ele a="tag1">mytag1</mytag>');
+
+                    testcon.append(mytag1);
+
+                    // 两个元素同时添加
+                    testcon.children().wrapAll('<mytag sv-ele a="mytag3">mytag3</mytag>');
+                    // $('body').append(testcon);
+                    assert.ok(testcon.find('mytag').length == 2, 'count ok');
+                    assert.ok(testcon.children().length == 1, 'children count ok1');
+                });
+            </script>
+        </div>
+
+        <div class="test_group">
+            <script>
                 QUnit.test("after test", function(assert) {
                     var testcon = $('<div><div class="sub_testcon">sub_testcon</div></div>');
                     var mytag1 = $('<mytag sv-ele a="tag1">mytag1</mytag>');
@@ -309,6 +326,58 @@
 
         <div class="test_group">
             <script>
+                QUnit.test("replaceWith test", function(assert) {
+                    var testcon = $('<div><div class="sub_testcon">sub_testcon</div></div>');
+                    var mytag1 = $('<mytag sv-ele a="tag1">mytag1</mytag>');
+
+                    testcon.append(mytag1);
+
+                    // 两个元素同时添加
+                    testcon.find("*").replaceWith('<mytag sv-ele a="tag2">mytag2</mytag>');
+                    // $('body').append(testcon);
+                    assert.ok(testcon.find('mytag').length == 2, 'count ok');
+                    assert.ok(testcon.find('mytag').get(0).svRender, 'svrender ok1');
+                    assert.ok(testcon.find('mytag').get(1).svRender, 'svrender ok2');
+
+                    mytag1.$kaka.replaceWith('<div class="test2">test2</div>');
+                    assert.ok(testcon.find('.test2').length == 0, 'shadow element ok');
+                });
+            </script>
+        </div>
+
+        <div class="test_group">
+            <script>
+                QUnit.test("replaceAll test", function(assert) {
+                    var testcon = $('<div><div class="sub_testcon">sub_testcon</div></div>');
+                    var mytag1 = $('<mytag sv-ele a="tag1">mytag1</mytag>');
+
+                    testcon.append(mytag1);
+
+                    // 两个元素同时添加
+                    $('<mytag sv-ele a="tag2">mytag2</mytag>').replaceAll(testcon.find("*"));
+                    // $('body').append(testcon);
+                    assert.ok(testcon.find('mytag').length == 2, 'count ok');
+                    assert.ok(testcon.find('mytag').get(0).svRender, 'svrender ok1');
+                    assert.ok(testcon.find('mytag').get(1).svRender, 'svrender ok2');
+                });
+            </script>
+        </div>
+
+        <div class="test_group">
+            <script>
+                QUnit.test("empty test", function(assert) {
+                    var mytag1 = $('<mytag sv-ele a="tag1">mytag1<mytag sv-ele a="tag2">mytag2</mytag></mytag>');
+
+                    mytag1.empty();
+
+                    // $('body').append(mytag1);
+                    assert.ok(mytag1.$content[0].innerHTML == "", 'empty ok');
+                });
+            </script>
+        </div>
+
+        <div class="test_group">
+            <script>
                 QUnit.test("function dom test", function(assert) {
                     var testCon = $('<div><mytag sv-ele class="testcon1" a="testcon1">testcon1</mytag><mytag sv-ele class="testcon2" a="testcon2">testcon2</mytag></div>');
                     testCon.children().append(function(i, e) {
@@ -316,15 +385,12 @@
                         assert.ok(typeof e == 'string', 'function dom arguments 2 ok');
                         return '<mytag sv-ele class="testcon3" a="testcon3">testcon3</mytag>';
                     });
-                    // $('body').append(testCon);
                     assert.ok(testCon.find('.testcon3').length == 2, 'function dom ok');
                 });
             </script>
         </div>
 
-
-
-
+        attr test <br>
 </body>
 
 </html>
