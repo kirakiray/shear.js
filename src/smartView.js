@@ -304,6 +304,14 @@
                 });
             });
 
+            // 设置props数据
+            tagdata.props && tagdata.props.forEach(function(e) {
+                var attrValue = ele.getAttribute(e);
+                if (attrValue) {
+                    svEle.set(e, attrValue);
+                }
+            });
+
             // 设置已渲染信息
             ele.setAttribute('sv-render', 1);
             ele.svRender = 1;
@@ -329,8 +337,10 @@
         var defaults = {
             // 模板元素
             ele: "",
-            // 需要监听的属性
+            // 需要动态更新监听的属性
             attrs: [],
+            // 需要挂载数据的属性
+            props: [],
             // 绑定元素value值的属性名
             val: "",
             //自带默认数据
@@ -375,6 +385,7 @@
         tagMapData[tagname] = {
             code: code,
             attrs: defaults.attrs,
+            props: defaults.props,
             data: defaults.data,
             render: defaults.render,
             val: defaults.val,

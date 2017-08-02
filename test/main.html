@@ -50,7 +50,11 @@
         sv.register({
             ele: $('#a'),
             // 与属性绑定的数据
+            // 没有定义data的attrs内的属性，会被定义为空的属性
             attrs: ["a", "bb"],
+            // 与属性绑定一次的数据，比attrs优先级更高
+            // 没有定义data的props内的属性，没有任何操作
+            props: ['tp'],
             // 自定义数据，会被 watch 监听
             // 不要在这里定义方法
             data: {
@@ -91,12 +95,44 @@
     </div>
     <div class="test_group">
         <script>
-            QUnit.test("data test", function(assert) {
+            QUnit.test("data & watch test", function(assert) {
                 var testtag1 = $('<mytag sv-ele />');
                 var testtag2 = $('<mytag sv-ele />');
+                assert.expect(6);
                 assert.ok(testtag1.a == testtag2.a, 'data ok');
                 assert.ok(testtag1.b !== testtag2.b, 'data ok2');
                 assert.ok(testtag1.c === testtag2.c, 'data ok3');
+
+                testtag1.watch('a', function(beforeValue, afterValue) {
+                    assert.ok(1, 'watch triggered');
+                    assert.ok(beforeValue == "mytag", 'trigger value is ok 1');
+                    assert.ok(afterValue == "tag222222222", 'trigger value is ok 2');
+                });
+
+                testtag1.a = "tag222222222";
+            });
+        </script>
+    </div>
+
+    <div class="test_group">
+        <script>
+            // 防止没有渲染
+            $('[sv-ele]');
+            QUnit.test("attrs & props test", function(assert) {
+                // 保证不会获取到 sv-shadow 元素
+                var mytag = $('<mytag sv-ele a="mytag1">mytag1</mytag>');
+
+                mytag.a = "hahatag";
+                assert.ok(mytag.attr('a') == "hahatag", 'attrs ok');
+                mytag.a = "ootag";
+                assert.ok(mytag.attr('a') == "ootag", 'attrs ok 2');
+
+                var mytag2 = $('<mytag sv-ele a="mytag1" tp="yec">mytag1</mytag>');
+                assert.ok(mytag2.tp == "yec", 'props ok');
+                assert.ok(mytag2.attr('tp') == "yec", 'props attr ok');
+                mytag2.tp = 'yec2';
+                assert.ok(mytag2.tp == "yec2", 'props ok2');
+                assert.ok(mytag2.attr('tp') == "yec", 'props attr ok2');
             });
         </script>
     </div>
