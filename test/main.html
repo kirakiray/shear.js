@@ -26,7 +26,7 @@
     <ol id="qunit-tests"></ol>
 
     <mytag id="a" style="display:none">
-        <div><span style="color:red;">{{a}}=>{{a}}</span></div>
+        <div><span style="color:red;">{{ a }}=>{{a}}</span></div>
         <div style="color:green;" sv-content></div>
         <div sv-tar="kaka" data-test="I am kaka">
             <input type="text" sv-module="a">
@@ -78,7 +78,8 @@
             val: "a",
             render: function($this) {
                 // console.log('$this =>', $this);
-            }
+            },
+            renderEle: 1
         });
     </script>
     <div class="test_group">
@@ -95,10 +96,12 @@
     </div>
     <div class="test_group">
         <script>
-            QUnit.test("data & watch test", function(assert) {
-                var testtag1 = $('<mytag sv-ele />');
+            QUnit.test("data & watch & set test", function(assert) {
+                var tag1 = document.createElement('mytag');
+                tag1.setAttribute('sv-ele', "");
+                var testtag1 = $(tag1);
                 var testtag2 = $('<mytag sv-ele />');
-                assert.expect(6);
+                assert.expect(8);
                 assert.ok(testtag1.a == testtag2.a, 'data ok');
                 assert.ok(testtag1.b !== testtag2.b, 'data ok2');
                 assert.ok(testtag1.c === testtag2.c, 'data ok3');
@@ -110,6 +113,11 @@
                 });
 
                 testtag1.a = "tag222222222";
+
+                // 重新set一个值
+                testtag1.set('tkey', 'IamtKey');
+                assert.ok(testtag1.tkey == "IamtKey", 'set value ok');
+                assert.ok($(tag1).tkey == "IamtKey", 'set value ok 2');
             });
         </script>
     </div>
@@ -118,7 +126,7 @@
         <script>
             // 防止没有渲染
             $('[sv-ele]');
-            QUnit.test("attrs & props test", function(assert) {
+            QUnit.test("attrs & props && attr test", function(assert) {
                 // 保证不会获取到 sv-shadow 元素
                 var mytag = $('<mytag sv-ele a="mytag1">mytag1</mytag>');
 
@@ -126,12 +134,15 @@
                 assert.ok(mytag.attr('a') == "hahatag", 'attrs ok');
                 mytag.a = "ootag";
                 assert.ok(mytag.attr('a') == "ootag", 'attrs ok 2');
+                mytag.attr('a', "okaa")
+                assert.ok(mytag.a == "okaa", 'attr ok');
 
                 var mytag2 = $('<mytag sv-ele a="mytag1" tp="yec">mytag1</mytag>');
                 assert.ok(mytag2.tp == "yec", 'props ok');
                 assert.ok(mytag2.attr('tp') == "yec", 'props attr ok');
                 mytag2.tp = 'yec2';
                 assert.ok(mytag2.tp == "yec2", 'props ok2');
+                // props 定的不会被改变属性，只会在最开始的时候获取一下属性
                 assert.ok(mytag2.attr('tp') == "yec", 'props attr ok2');
             });
         </script>
@@ -426,7 +437,32 @@
             </script>
         </div>
 
-        attr test <br>
+        <div class="test_group">
+            <script>
+                QUnit.test("extend & rely test", function(assert) {
+                    sv.extend({
+                        tag: "test-tag-1",
+                        render: function() {
+                            assert.ok(1, 'extend ok');
+                        }
+                    });
+                    sv.register({
+                        ele: "<test-tag-1>{{a}}</test-tag-1>",
+                        data: {
+                            a: "I am testtag1"
+                        },
+                        render: function() {
+                            assert.ok(1, 'render ok');
+                        },
+                        // 模拟依赖两个tag
+                        rely: ['testtag-2', 'testtag-3']
+                    });
+
+                    var t1 = $('<test-tag-1 sv-ele>');
+                    $('body').append(t1);
+                });
+            </script>
+        </div>
 </body>
 
 </html>

@@ -34,6 +34,11 @@
         return 0 in $$(expr, fadeParent) ? true : false;
     };
 
+    // 获取注册元素名
+    var getRenderTagName = function(ele) {
+        return ele.getAttribute('sv-is') || ele.tagName.toLowerCase()
+    }
+
 
     // class
     var $_fn = $.fn;
@@ -156,7 +161,7 @@
 
         // 继承方法
         var nFn = Object.create(SmartViewFn);
-        $.extend(nFn, proto);
+        $.extend(nFn, proto || {});
 
         SmartView.prototype = nFn;
 
@@ -168,7 +173,7 @@
     var renderEle = function(ele) {
         //判断是否渲染
         var isRender = ele.svRender;
-        var tagName = ele.getAttribute('sv-is') || ele.tagName.toLowerCase();
+        var tagName = getRenderTagName(ele);
 
         //获取注册信息
         var tagdata = tagMapData[tagName];
@@ -187,7 +192,9 @@
 
             // 初始化$content
             var $content = ele.querySelector('[sv-content]');
-            svFnData.$content = $$($content);
+            if ($content) {
+                svFnData.$content = $$($content);
+            }
 
             // 还原元素
             childNodes && childNodes.forEach(function(element) {
@@ -348,7 +355,13 @@
             // 原型链对象，不会被监听
             proto: "",
             //每次初始化都会执行的函数
-            render: ""
+            render: function() {},
+            // 需要依赖的其他标签
+            // 例如自定义子元素
+            rely: [],
+            // 是否渲染模板元素
+            // 默认否，设置 true 模板元素也会被渲染
+            renderEle: 0
         };
         // 合并选项
         $.extend(defaults, options);
@@ -358,11 +371,8 @@
         if (defaults.ele) {
             ele = $$(defaults.ele)[0];
 
-            // 查看 sv-is 属性
-            var svis = ele.getAttribute('sv-is');
-
             // 需要注册的tag名
-            tagname = svis || ele.tagName.toLowerCase();
+            tagname = getRenderTagName(ele);
 
             each(ele.querySelectorAll("*"), function(i, e) {
                 e.setAttribute('sv-shadow', "");
@@ -374,10 +384,10 @@
 
         //准换自定义字符串数据
         var darr = code.match(/{{.+?}}/g);
-        darr.forEach(function(e) {
+        darr && darr.forEach(function(e) {
             var key = /{{(.+?)}}/.exec(e);
             if (key) {
-                code = code.replace(e, '<sv-span sv-shadow svkey="' + key[1] + '"></sv-span>');
+                code = code.replace(e, '<sv-span sv-shadow svkey="' + key[1].trim() + '"></sv-span>');
             }
         });
 
@@ -392,14 +402,16 @@
             sv: createSmartViewClass(defaults.proto)
         };
 
-        // 清空示例元素的内部元素，渲并染示例元素
-        ele.innerHTML = "";
-        renderEle(ele);
+        if (defaults.renderEle) {
+            // 清空示例元素的内部元素，渲并染示例元素
+            ele.innerHTML = "";
+            renderEle(ele);
 
-        //获取需要渲染的元素进行渲染
-        $(tagname + '[sv-ele]').each(function(i, e) {
-            renderEle(e);
-        });
+            //获取需要渲染的元素进行渲染
+            $(tagname + '[sv-ele]').each(function(i, e) {
+                renderEle(e);
+            });
+        }
     };
 
     // 修正原jquery方法
@@ -447,6 +459,27 @@
         }
 
         return obj;
+    };
+
+    // 修改attr方法，设置属性前判断是否有绑定属性变量
+    var o_attr = $.fn.attr;
+    $.fn.attr = function(name, value) {
+        if (value !== undefined) {
+            each(this, function(i, e) {
+                if (e.svRender) {
+                    var tagname = getRenderTagName(e);
+                    var tagdata = tagMapData[tagname];
+                    if (tagdata.attrs.indexOf(name) > -1) {
+                        $(e)[name] = value;
+                    }
+                } else {
+                    o_attr.call($$(e), name, value);
+                }
+            });
+            return this;
+        } else {
+            return o_attr.call(this, name, value);
+        }
     };
 
     // 扩展其他方法
@@ -532,7 +565,7 @@
         var arr = [];
         this.each(function(i, e) {
             var rearr;
-            if (e.svRender) {
+            if (e.svRender && e._svData.$content) {
                 rearr = o_children.call(e._svData.$content, expr);
             } else {
                 rearr = o_children.call($$(e), expr);
@@ -582,9 +615,9 @@
         $.fn[e] = function(tar) {
             n_ec.call(this, tar, function(e, tar) {
                 if (isSvShadow(e) && !hasAttr(tar, 'sv-content')) {
-                    tar.attr('sv-shadow', "");
+                    tar[0] && tar[0].setAttribute('sv-shadow', "");
                 }
-                if (e.svRender) {
+                if (e.svRender && e._svData.$content) {
                     o_func.call(e._svData.$content, tar);
                 } else {
                     o_func.call($$(e), tar);
@@ -599,7 +632,7 @@
     $.fn.wrap = function(tar) {
         n_ec.call(this, tar, function(e, tar) {
             if (isSvShadow(e)) {
-                tar.attr('sv-shadow', "");
+                tar[0] && tar[0].setAttribute('sv-shadow', "");
             }
             if (tar.svRender) {
                 e.parentNode.insertBefore(tar[0], e);
@@ -617,7 +650,7 @@
         $.fn[e] = function(tar) {
             n_ec.call(this, tar, function(e, tar) {
                 if (isSvShadow(e)) {
-                    tar.attr('sv-shadow', "");
+                    tar[0] && tar[0].setAttribute('sv-shadow', "");
                 }
                 o_func.call($$(e), tar);
             });
@@ -632,7 +665,7 @@
             if (tar) {
                 this.each(function(i, e) {
                     // 运行独立函数
-                    if (e.svRender) {
+                    if (e.svRender && e._svData.$content) {
                         o_func.call(e._svData.$content, tar);
                     } else {
                         o_func.call($$(e), tar);
@@ -668,7 +701,7 @@
     // empty
     $.fn.empty = function() {
         each(this, function(i, e) {
-            if (e.svRender) {
+            if (e.svRender && e._svData.$content) {
                 e._svData.$content[0].innerHTML = "";
             } else {
                 e.innerHTML = "";
