@@ -4,7 +4,7 @@
     // 主体映射tag数据
     var tagMapData = {};
     window.tagMapData = tagMapData;
-    var extendData = {};
+    var extendFuncs = {};
 
     // function
     var makearray = $.makearray;
@@ -27,7 +27,7 @@
     //判断元素是否符合条件
     var judgeEle = function(ele, expr) {
         var fadeParent = document.createElement('div');
-        if (ele == document) {
+        if (ele === document) {
             return false;
         }
         fadeParent.appendChild(ele.cloneNode(false));
@@ -38,7 +38,6 @@
     var getRenderTagName = function(ele) {
         return ele.getAttribute('sv-is') || ele.tagName.toLowerCase()
     }
-
 
     // class
     var $_fn = $.fn;
@@ -69,7 +68,7 @@
         },
         // 检测数值变动
         watch: function(keyname, callback, times) {
-            if (times == 0) {
+            if (times === 0) {
                 // 注册0次的请打死他
                 return;
             }
@@ -279,7 +278,7 @@
 
             // 设定值
             each(tagdata.data, function(k, v) {
-                if (typeof v == "object") {
+                if (typeof v === "object") {
                     v = JSON.parse(JSON.stringify(v));
                 }
                 svEle[k] = v;
@@ -330,7 +329,7 @@
             tagdata.render(svEle);
 
             // 判断是否extend扩展函数
-            var extendTagData = extendData[tagName];
+            var extendTagData = extendFuncs[tagName];
             if (extendTagData) {
                 extendTagData.forEach(function(e) {
                     e.render(svEle);
@@ -356,9 +355,6 @@
             proto: "",
             //每次初始化都会执行的函数
             render: function() {},
-            // 需要依赖的其他标签
-            // 例如自定义子元素
-            rely: [],
             // 是否渲染模板元素
             // 默认否，设置 true 模板元素也会被渲染
             renderEle: 0
@@ -426,7 +422,7 @@
         var has_shadow = 0;
         var notShadowEle = [];
         obj.each(function(i, e) {
-            if (e.getAttribute && e.getAttribute('sv-ele') == "") {
+            if (e.getAttribute && e.getAttribute('sv-ele') === "") {
                 renderEle(e);
             }
 
@@ -451,7 +447,7 @@
         notShadowEle = null;
 
         // 判断是否sv-render元素，是的话返回一个 svRender 对象
-        if (obj.length == 1 && obj[0].svRender) {
+        if (obj.length === 1 && obj[0].svRender) {
             var svdata = obj[0]._svData;
             if (svdata) {
                 return svdata.init(obj[0]);
@@ -580,7 +576,7 @@
         var lastId = this.length - 1;
 
         var isfunction;
-        if (getType(tar) == "function") {
+        if (getType(tar) === "function") {
             isfunction = 1;
         } else {
             // 转换元素
@@ -714,7 +710,7 @@
     var sv = {
         // 暴露注册插件的方法
         register: register,
-        //扩展插件的方法
+        // 简单的后续扩展插件的方法
         extend: function(options) {
             var defaults = {
                 // 注册的tag
@@ -726,7 +722,7 @@
             $.extend(defaults, options);
 
             // 判断并加入数据对象
-            var extendTagData = extendData[defaults.tag] || (extendData[defaults.tag] = []);
+            var extendTagData = extendFuncs[defaults.tag] || (extendFuncs[defaults.tag] = []);
 
             extendTagData.push(defaults);
         }
