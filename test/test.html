@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>随便测试一下</title>
+    <script src="smartjq.js"></script>
+    <script src="../src/smartView.js"></script>
+    <style>
+        t1 {
+            display: block;
+            margin: 10px 0;
+            color: rebeccapurple;
+        }
+        
+        t2 {
+            display: block;
+            margin: 10px 0;
+            color: gold;
+        }
+    </style>
+</head>
+
+<body>
+    <mytag id="a" sv-register="mytag" style="display:none;">
+        <div><span style="color:red;">{{a}}=>{{a}}</span></div>
+        <div style="color:green;" sv-content></div>
+        <div sv-tar="kaka" data-test="I am kaka">
+            <input type="text" sv-module="a">
+        </div>
+        <t1 sv-ele></t1>
+        <!-- <t2 sv-ele></t2> -->
+    </mytag>
+
+    <t1 id="t1" sv-register="t1" style="display:none;">
+        <!-- {{a}} <br>t1= -->
+        t1 => {{a}}
+        <div sv-content></div>
+        <input type="text" sv-module="a">
+    </t1>
+
+    <!-- <t2 sv-register="t2" id="t2" style="display:none;">
+        t2=
+        <span>{{a}}</span>
+        <div sv-content></div>
+        <input type="text" sv-module="a">
+    </t2> -->
+
+    <mytag sv-ele>testtag</mytag>
+
+    <t1 sv-ele a="I am t1"> t1t1t1t1 </t1>
+
+    <!-- <t2 sv-ele a="I am t2"></t2> -->
+
+    <script>
+        sv.register({
+            ele: "#t1",
+            render: function($this) {
+                console.log('#t1', $this);
+            },
+            data: {
+                a: "hahat1"
+            }
+        });
+        // 注册新元素
+        sv.register({
+            ele: '#a',
+            // 与属性绑定的数据
+            attrs: ["a", "bb"],
+            // 自定义数据，会被 watch 监听
+            // 不要在这里定义方法
+            data: {
+                // 默认数据
+                a: "mytag",
+                b: {
+                    val: "datab"
+                }
+            },
+            // 自定义原型属性，不会被 watch 监听
+            // 用于设定默认属性方法
+            proto: {
+                c: {
+                    val: "datatestObj"
+                },
+                log: function() {
+                    console.log('log => ', this, this.a);
+                }
+            },
+            // 获取value的属性名
+            val: "a",
+            render: function($this) {
+                console.log('#a $this =>', $this);
+            }
+        });
+        // sv.register({
+        //     ele: "#t2",
+        //     render: function($this) {
+        //         console.log('#t2', $this);
+        //     },
+        //     data: {
+        //         a: "kakat2"
+        //     }
+        // });
+    </script>
+</body>
+
+</html>

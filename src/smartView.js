@@ -2,8 +2,8 @@
     "use strict";
     // base
     // 主体映射tag数据
-    var tagMapData = {};
-    window.tagMapData = tagMapData;
+    var tagDatabase = {};
+    window.tagDatabase = tagDatabase;
     var extendFuncs = {};
 
     // function
@@ -38,6 +38,11 @@
     var getRenderTagName = function(ele) {
         return ele.getAttribute('sv-is') || ele.tagName.toLowerCase()
     }
+
+    //获取tagdata
+    var getTagData = function(tagname) {
+        return tagDatabase[tagname] || (tagDatabase[tagname] = $({}));
+    };
 
     // class
     var $_fn = $.fn;
@@ -175,164 +180,199 @@
         var tagName = getRenderTagName(ele);
 
         //获取注册信息
-        var tagdata = tagMapData[tagName];
+        var tagdata = getTagData(tagName);
+
+        // 判断父层没有sv-register
+        var par = ele,
+            hasReg;
+        do {
+            par = par.parentNode;
+            hasReg = par && hasAttr(par, 'sv-register');
+        }
+        while (!hasReg && par && par !== document.body)
+        if (hasReg) {
+            return;
+        }
 
         // 确认没有渲染
-        if (tagdata && !isRender) {
-            // 获取childNode
-            var childNodes = makearray(ele.childNodes);
+        // 确认依赖加载完成
+        if (!isRender) {
+            // 渲染的函数
+            var renderFunc = function() {
+                // 获取childNode
+                var childNodes = makearray(ele.childNodes);
 
-            // 填充元素
-            ele.innerHTML = tagdata.code;
+                // 填充元素
+                ele.innerHTML = tagdata.code;
 
-            // 渲染数据对象
-            var svFnData = new tagdata.sv();
-            ele._svData = svFnData;
+                // 渲染依赖的子定义对象
+                if (tagdata.relys.length) {
+                    each(tagdata.relys, function(i, e) {
+                        $(e + '[sv-ele]', ele);
+                    });
+                }
 
-            // 初始化$content
-            var $content = ele.querySelector('[sv-content]');
-            if ($content) {
-                svFnData.$content = $$($content);
-            }
+                // 渲染数据对象
+                var svFnData = new tagdata.sv();
+                ele._svData = svFnData;
 
-            // 还原元素
-            childNodes && childNodes.forEach(function(element) {
-                $content.appendChild(element);
-            });
+                // 初始化$content
+                var $content = ele.querySelector('[sv-content]');
+                if ($content) {
+                    svFnData.$content = $$($content);
+                }
 
-            // 初始化 sv-span 元素
-            var svspans = svFnData._svspan = {};
-            each(ele.querySelectorAll('sv-span'), function(i, e) {
-                // 替换sv-span
-                var textnode = document.createTextNode("");
-                e.parentNode.insertBefore(textnode, e);
-                e.parentNode.removeChild(e);
-                textnode.tagcode = e.outerHTML;
+                // 还原元素
+                childNodes && childNodes.forEach(function(element) {
+                    $content.appendChild(element);
+                });
 
-                // 注册文本节点
-                var svkey = e.getAttribute('svkey');
-                var arr = svspans[svkey] || (svspans[svkey] = []);
-                arr.push(textnode);
-            });
+                // 初始化 sv-span 元素
+                var svspans = svFnData._svspan = {};
+                each(ele.querySelectorAll('sv-span'), function(i, e) {
+                    // 替换sv-span
+                    var textnode = document.createTextNode("");
+                    e.parentNode.insertBefore(textnode, e);
+                    e.parentNode.removeChild(e);
+                    textnode.tagcode = e.outerHTML;
 
-            // 初始设定空值
-            // 绑定text节点
-            var svEle = svFnData.init(ele);
-            each(tagdata.data, function(k, v) {
-                // 设定需要监听的key
-                svEle.set(k);
+                    // 注册文本节点
+                    var svkey = e.getAttribute('svkey');
+                    var arr = svspans[svkey] || (svspans[svkey] = []);
+                    arr.push(textnode);
+                });
 
-                // 绑定值修改文本事件 和 绑定watch事件
-                svEle.on('_sv_c_' + k, function(e, data) {
-                    // 修正textEle
-                    var textEles = svspans[k];
-                    textEles && textEles.forEach(function(e) {
-                        (e.textContent = data.a)
+                // 初始设定空值
+                // 绑定text节点
+                var svEle = svFnData.init(ele);
+                each(tagdata.data, function(k, v) {
+                    // 设定需要监听的key
+                    svEle.set(k);
+
+                    // 绑定值修改文本事件 和 绑定watch事件
+                    svEle.on('_sv_c_' + k, function(e, data) {
+                        // 修正textEle
+                        var textEles = svspans[k];
+                        textEles && textEles.forEach(function(e) {
+                            (e.textContent = data.a)
+                        });
                     });
                 });
-            });
 
-            // 绑定sv-module
-            svEle.realFind('[sv-module]').each(function() {
-                var $this = $$(this);
-                var k = this.getAttribute('sv-module');
+                // 绑定sv-module
+                svEle.realFind('[sv-module]').each(function() {
+                    var $this = $$(this);
+                    var k = this.getAttribute('sv-module');
 
-                //判断是否存在，不存在就set
-                if (!(k in svEle)) {
-                    svEle.set(k, "");
+                    //判断是否存在，不存在就set
+                    if (!(k in svEle)) {
+                        svEle.set(k, "");
+                    }
+
+                    $this.on('input', function() {
+                        svEle[k] = this.value;
+                    });
+
+                    //绑定相对定义值
+                    svEle.on('_sv_c_' + k, function(e, data) {
+                        $this.val(data.a);
+                    });
+
+                    // 替换sv-module标识为sv-render-module
+                    this.removeAttribute('sv-module');
+                    this.setAttribute('sv-render-module', k)
+                });
+
+                // 获取sv-tar值
+                svEle.realFind('[sv-tar]').each(function() {
+                    var $ele = $$(this);
+                    var sv_tar = $ele.attr('sv-tar');
+                    sv_tar && (svFnData['$' + sv_tar] = $ele);
+                });
+
+                // 绑定value
+                if (tagdata.val) {
+                    var eleVal = "";
+                    Object.defineProperty(ele, "value", {
+                        set: function(val) {
+                            svEle[tagdata.val] = val;
+                            eleVal = val;
+                        },
+                        get: function() {
+                            return eleVal;
+                        }
+                    });
+                    svEle.on('_sv_c_' + tagdata.val, function(e, data) {
+                        eleVal = data.a;
+                    });
                 }
 
-                $this.on('input', function() {
-                    svEle[k] = this.value;
+                // 设定值
+                each(tagdata.data, function(k, v) {
+                    if (typeof v === "object") {
+                        v = JSON.parse(JSON.stringify(v));
+                    }
+                    svEle[k] = v;
                 });
 
-                //绑定相对定义值
-                svEle.on('_sv_c_' + k, function(e, data) {
-                    $this.val(data.a);
+                // 绑定attrs数据
+                tagdata.attrs && tagdata.attrs.forEach(function(k) {
+                    var attrValue = ele.getAttribute(k);
+                    // 判断是否自定义属性，具有优先级别
+                    if (attrValue) {
+                        if (!(k in svEle)) {
+                            svEle.set(k, attrValue);
+                        } else {
+                            svEle[k] = attrValue;
+                        }
+                    }
+
+                    // 判断是否存在，不存在就set
+                    if (!(k in svEle)) {
+                        svEle.set(k, "");
+                        ele.setAttribute(k, "");
+                    } else {
+                        ele.setAttribute(k, svEle[k]);
+                    }
+
+                    svEle.on('_sv_c_' + k, function(e, data) {
+                        // 绑定属性
+                        ele.setAttribute(k, data.a);
+                    });
                 });
-            });
 
-            // 获取sv-tar值
-            svEle.realFind('[sv-tar]').each(function() {
-                var $ele = $$(this);
-                var sv_tar = $ele.attr('sv-tar');
-                sv_tar && (svFnData['$' + sv_tar] = $ele);
-            });
-
-            // 绑定value
-            if (tagdata.val) {
-                var eleVal = "";
-                Object.defineProperty(ele, "value", {
-                    set: function(val) {
-                        svEle[tagdata.val] = val;
-                        eleVal = val;
-                    },
-                    get: function() {
-                        return eleVal;
+                // 设置props数据
+                tagdata.props && tagdata.props.forEach(function(e) {
+                    var attrValue = ele.getAttribute(e);
+                    if (attrValue) {
+                        svEle.set(e, attrValue);
                     }
                 });
-                svEle.on('_sv_c_' + tagdata.val, function(e, data) {
-                    eleVal = data.a;
-                });
+
+                // 设置已渲染信息
+                ele.setAttribute('sv-render', 1);
+                ele.svRender = 1;
+
+                // 去除渲染前标识
+                ele.removeAttribute('sv-ele');
+
+                // 执行render函数
+                tagdata.render(svEle);
+
+                // 判断是否extend扩展函数
+                var extendTagData = extendFuncs[tagName];
+                if (extendTagData) {
+                    extendTagData.forEach(function(e) {
+                        e.render(svEle);
+                    });
+                }
             }
 
-            // 设定值
-            each(tagdata.data, function(k, v) {
-                if (typeof v === "object") {
-                    v = JSON.parse(JSON.stringify(v));
-                }
-                svEle[k] = v;
-            });
-
-            // 绑定attrs数据
-            tagdata.attrs && tagdata.attrs.forEach(function(k) {
-                var attrValue = ele.getAttribute(k);
-                // 判断是否自定义属性，具有优先级别
-                if (attrValue) {
-                    if (!(k in svEle)) {
-                        svEle.set(k, attrValue);
-                    } else {
-                        svEle[k] = attrValue;
-                    }
-                }
-
-                // 判断是否存在，不存在就set
-                if (!(k in svEle)) {
-                    svEle.set(k, "");
-                    ele.setAttribute(k, "");
-                } else {
-                    ele.setAttribute(k, svEle[k]);
-                }
-
-                svEle.on('_sv_c_' + k, function(e, data) {
-                    // 绑定属性
-                    ele.setAttribute(k, data.a);
-                });
-            });
-
-            // 设置props数据
-            tagdata.props && tagdata.props.forEach(function(e) {
-                var attrValue = ele.getAttribute(e);
-                if (attrValue) {
-                    svEle.set(e, attrValue);
-                }
-            });
-
-            // 设置已渲染信息
-            ele.setAttribute('sv-render', 1);
-            ele.svRender = 1;
-
-            // 去除渲染前标识
-            ele.removeAttribute('sv-ele');
-
-            // 执行render函数
-            tagdata.render(svEle);
-
-            // 判断是否extend扩展函数
-            var extendTagData = extendFuncs[tagName];
-            if (extendTagData) {
-                extendTagData.forEach(function(e) {
-                    e.render(svEle);
+            if (tagdata.relyOk) {
+                renderFunc();
+            } else {
+                tagdata.one('canRender', function() {
+                    renderFunc();
                 });
             }
         }
@@ -368,15 +408,31 @@
             ele = $$(defaults.ele)[0];
 
             // 需要注册的tag名
-            tagname = getRenderTagName(ele);
+            tagname = ele.getAttribute('sv-register') || getRenderTagName(ele);
 
+            // 把子元素有内容的textNode转换成spanNode
+            var childnodes = ele.childNodes;
+            each(childnodes, function(i, e) {
+                if (e instanceof Text && e.textContent.trim()) {
+                    var spanNode = document.createElement('span');
+                    spanNode.textContent = e.textContent;
+                    ele.insertBefore(spanNode, e);
+                    ele.removeChild(e);
+                }
+            });
+
+            // 所有内元素添加sv-shadow
             each(ele.querySelectorAll("*"), function(i, e) {
                 e.setAttribute('sv-shadow', "");
             });
+
             code = ele.innerHTML;
         } else {
             return;
         }
+
+        // 去除无用的代码（注释代码）
+        code = code.replace(/<!--.+?-->/g, "");
 
         //准换自定义字符串数据
         var darr = code.match(/{{.+?}}/g);
@@ -387,27 +443,74 @@
             }
         });
 
+        // 获取依赖tag
+        var relys = [];
+        var relyEles = ele.querySelectorAll('[sv-ele]');
+        each(relyEles, function(i, e) {
+            var tagname = e.tagName.toLowerCase();
+            if (relys.indexOf(tagname) == -1) {
+                relys.push(tagname);
+            }
+        });
+
         //注册数据
-        tagMapData[tagname] = {
+        var tagdata = getTagData(tagname);
+        $.extend(tagdata, {
+            tagname: tagname,
             code: code,
             attrs: defaults.attrs,
             props: defaults.props,
             data: defaults.data,
             render: defaults.render,
             val: defaults.val,
-            sv: createSmartViewClass(defaults.proto)
-        };
+            sv: createSmartViewClass(defaults.proto),
+            // 所有依赖的自定义tag
+            relys: relys,
+            // 依赖的tag是否完成
+            // relyOk: 1
+        });
+
+        if (0 in relys) {
+            // 设置依赖还没完成
+            tagdata.relyOk = 0;
+
+            // 根据依赖tag绑定依赖事件
+            var c = relys.length;
+            each(relys, function(i, e) {
+                var tdata = getTagData(e);
+                if (tdata.relyOk) {
+                    c--;
+                    if (c === 0) {
+                        tagdata.relyOk = 1;
+                        tagdata.trigger('canRender');
+                    }
+                } else {
+                    tdata.one('canRender', function() {
+                        c--;
+                        if (c === 0) {
+                            tagdata.relyOk = 1;
+                            tagdata.trigger('canRender');
+                        }
+                    });
+                }
+            });
+        } else {
+            tagdata.relyOk = 1;
+            // 触发可以渲染的事件
+            tagdata.trigger('canRender');
+        }
 
         if (defaults.renderEle) {
-            // 清空示例元素的内部元素，渲并染示例元素
+            // 清空示例元素的内部元素，并渲染示例元素
             ele.innerHTML = "";
             renderEle(ele);
-
-            //获取需要渲染的元素进行渲染
-            $(tagname + '[sv-ele]').each(function(i, e) {
-                renderEle(e);
-            });
         }
+
+        //获取需要渲染的元素进行渲染
+        $$(tagname + '[sv-ele]').each(function(i, e) {
+            // 不在sv-register内就可以渲染
+            renderEle(e);
+        });
     };
 
     // 修正原jquery方法
@@ -464,7 +567,7 @@
             each(this, function(i, e) {
                 if (e.svRender) {
                     var tagname = getRenderTagName(e);
-                    var tagdata = tagMapData[tagname];
+                    var tagdata = getTagData(tagname);
                     if (tagdata.attrs.indexOf(name) > -1) {
                         $(e)[name] = value;
                     }
@@ -657,14 +760,14 @@
     // html text
     ['html', 'text'].forEach(function(e) {
         var o_func = $.fn[e];
-        $.fn[e] = function(tar) {
-            if (tar) {
+        $.fn[e] = function(ele) {
+            if (ele) {
                 this.each(function(i, e) {
                     // 运行独立函数
                     if (e.svRender && e._svData.$content) {
-                        o_func.call(e._svData.$content, tar);
+                        o_func.call(e._svData.$content, ele);
                     } else {
-                        o_func.call($$(e), tar);
+                        o_func.call($$(e), ele);
                     }
                 });
 

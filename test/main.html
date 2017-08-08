@@ -86,7 +86,7 @@
             renderEle: 1
         });
     </script>
-    <!-- <div class="test_group">
+    <div class="test_group">
         <script>
             QUnit.test("render", function(assert) {
                 var testtag = $('<mytag sv-ele>I am testtag</mytag>');
@@ -173,6 +173,7 @@
             QUnit.test("html text test", function(assert) {
                 // 保证不会获取到 sv-shadow 元素
                 assert.ok($('.b').html().search('sv-shadow') == -1, 'html ok');
+                assert.ok($('.b').html().replace(/ /g, "").length > 10, 'html length ok');
                 assert.ok($('.b').text().search('b3 ye ye') == -1, 'text ok');
             });
         </script>
@@ -439,47 +440,47 @@
                     assert.ok(testCon.find('.testcon3').length == 2, 'function dom ok');
                 });
             </script>
-        </div> -->
+        </div>
 
-    <div class="test_group">
-        <script>
-            QUnit.test("extend & rely test", function(assert) {
-                sv.extend({
-                    tag: "test-tag-1",
-                    render: function() {
-                        assert.ok(1, 'extend ok');
-                    }
-                });
-
-                sv.register({
-                    ele: "<test-tag-1>{{a}}<<testtag-2></<testtag-2></test-tag-1>",
-                    data: {
-                        a: "I am testtag1"
-                    },
-                    render: function() {
-                        assert.ok(1, 'render ok');
-                    }
-                });
-
-                setTimeout(function() {
-                    sv.register({
-                        ele: "<testtag-2 b='tag2'>{{b}}</testtag-2>"
+        <div class="test_group">
+            <script>
+                QUnit.test("extend & rely test", function(assert) {
+                    sv.extend({
+                        tag: "test-tag-1",
+                        render: function() {
+                            assert.ok(1, 'extend ok');
+                        }
                     });
+
+                    sv.register({
+                        ele: "<test-tag-1>{{a}}</test-tag-1>",
+                        data: {
+                            a: "I am testtag1"
+                        },
+                        render: function() {
+                            assert.ok(1, 'render ok');
+                        }
+                    });
+
                     setTimeout(function() {
                         sv.register({
-                            ele: "<testtag-3>{{c}}</testtag-3>",
-                            data: {
-                                c: "tag3"
-                            }
+                            ele: "<testtag-2 b='tag2'>{{b}}</testtag-2>"
                         });
+                        setTimeout(function() {
+                            sv.register({
+                                ele: "<testtag-3>{{c}}</testtag-3>",
+                                data: {
+                                    c: "tag3"
+                                }
+                            });
+                        }, 1000);
                     }, 1000);
-                }, 1000);
 
-                var t1 = $('<test-tag-1 sv-ele>');
-                $('body').append(t1);
-            });
-        </script>
-    </div>
+                    var t1 = $('<test-tag-1 sv-ele>');
+                    $('body').append(t1);
+                });
+            </script>
+        </div>
 </body>
 
 </html>
