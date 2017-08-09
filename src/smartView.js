@@ -49,7 +49,17 @@
     var bInit = $_fn.init;
     //还原一个无影响的smartJQ
     var smartJQ = function(selector, context) {
-        return this.init(selector, context);
+        var obj = this.init(selector, context);
+
+        // 判断是否sv-render元素，是的话返回一个 svRender 对象
+        if (obj.length === 1 && obj[0].svRender) {
+            var svdata = obj[0]._svData;
+            if (svdata) {
+                return svdata.init(obj[0]);
+            }
+        }
+
+        return obj;
     };
     var bfn = Object.create($_fn);
     bfn.init = bInit;
@@ -205,13 +215,6 @@
                 // 填充元素
                 ele.innerHTML = tagdata.code;
 
-                // 渲染依赖的子定义对象
-                if (tagdata.relys.length) {
-                    each(tagdata.relys, function(i, e) {
-                        $(e + '[sv-ele]', ele);
-                    });
-                }
-
                 // 渲染数据对象
                 var svFnData = new tagdata.sv();
                 ele._svData = svFnData;
@@ -220,6 +223,13 @@
                 var $content = ele.querySelector('[sv-content]');
                 if ($content) {
                     svFnData.$content = $$($content);
+                }
+
+                // 渲染依赖的子定义对象
+                if (tagdata.relys.length) {
+                    each(tagdata.relys, function(i, e) {
+                        $(e + '[sv-ele]', ele);
+                    });
                 }
 
                 // 还原元素
@@ -345,7 +355,11 @@
                 tagdata.props && tagdata.props.forEach(function(e) {
                     var attrValue = ele.getAttribute(e);
                     if (attrValue) {
-                        svEle.set(e, attrValue);
+                        if (e in svEle) {
+                            svEle[e] = attrValue;
+                        } else {
+                            svEle.set(e, attrValue);
+                        }
                     }
                 });
 
@@ -370,9 +384,11 @@
 
             if (tagdata.relyOk) {
                 renderFunc();
+                renderFunc = null;
             } else {
                 tagdata.one('canRender', function() {
                     renderFunc();
+                    renderFunc = null;
                 });
             }
         }
@@ -828,6 +844,12 @@
             var extendTagData = extendFuncs[defaults.tag] || (extendFuncs[defaults.tag] = []);
 
             extendTagData.push(defaults);
+        },
+        init: function(ele) {
+            var svdata = ele._svData;
+            if (svdata) {
+                return svdata.init(ele);
+            }
         }
     };
 

@@ -29,7 +29,7 @@
     <h2 id="qunit-banner"></h2>
     <ol id="qunit-tests"></ol>
 
-    <mytag id="a" style="display:none">
+    <mytag sv-register="mytag" id="a" style="display:none">
         <div><span style="color:red;">{{ a }}=>{{a}}</span></div>
         <div style="color:green;" sv-content></div>
         <div sv-tar="kaka" data-test="I am kaka">
@@ -445,38 +445,52 @@
         <div class="test_group">
             <script>
                 QUnit.test("extend & rely test", function(assert) {
+                    assert.expect(6);
                     sv.extend({
-                        tag: "test-tag-1",
+                        tag: "tag-1",
                         render: function() {
                             assert.ok(1, 'extend ok');
                         }
                     });
 
                     sv.register({
-                        ele: "<test-tag-1>{{a}}</test-tag-1>",
+                        ele: "<tag-2 sv-register='tag-2'>{{b}}<span sv-content></span></tag-2>",
+                        props: ['b'],
+                        data: {
+                            b: "tag2"
+                        },
+                        render: function() {
+                            assert.ok(1, 'render ok1');
+                        }
+                    });
+
+                    // tag-1 依赖 tag-2 和 tag-3
+                    sv.register({
+                        ele: "<tag-1 sv-register='tag-1'>{{a}} <br> <tag-2 sv-ele b='tag2_ye' sv-tar='t2'> </tag-2> <br> <tag-3 sv-ele sv-tar='t3'></tag-3> <div sv-tar='test'></div> </tag-1>",
                         data: {
                             a: "I am testtag1"
                         },
                         render: function() {
-                            assert.ok(1, 'render ok');
+                            assert.ok(1, 'render ok3');
                         }
                     });
 
-                    setTimeout(function() {
-                        sv.register({
-                            ele: "<testtag-2 b='tag2'>{{b}}</testtag-2>"
-                        });
-                        setTimeout(function() {
-                            sv.register({
-                                ele: "<testtag-3>{{c}}</testtag-3>",
-                                data: {
-                                    c: "tag3"
-                                }
-                            });
-                        }, 1000);
-                    }, 1000);
+                    sv.register({
+                        ele: "<tag-3 sv-register='tag-3'>{{c}}</tag-3>",
+                        data: {
+                            c: "tag3"
+                        },
+                        render: function() {
+                            assert.ok(1, 'render ok2');
+                        }
+                    });
 
-                    var t1 = $('<test-tag-1 sv-ele>');
+                    var t1 = $('<tag-1 sv-ele>');
+
+                    // 查看各个值是否正确
+                    assert.ok(t1.$t2.b == 'tag2_ye', 'data ok 1');
+                    assert.ok(t1.$t3.c == 'tag3', 'data ok 2');
+
                     $('body').append(t1);
                 });
             </script>
