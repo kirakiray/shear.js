@@ -228,7 +228,10 @@
                 // 渲染依赖的子定义对象
                 if (tagdata.relys.length) {
                     each(tagdata.relys, function(i, e) {
-                        $(e + '[sv-ele]', ele);
+                        // 渲染内部元素
+                        $$(e + '[sv-ele]', ele).each(function(i, e) {
+                            renderEle(e);
+                        });
                     });
                 }
 
@@ -541,6 +544,13 @@
         var has_shadow = 0;
         var notShadowEle = [];
         obj.each(function(i, e) {
+            //判断当前是否拥有 sv-shadow 元素
+            if (isSvShadow(e)) {
+                has_shadow = 1;
+            } else {
+                notShadowEle.push(e);
+            }
+
             if (e.getAttribute && e.getAttribute('sv-ele') === "") {
                 renderEle(e);
             }
@@ -550,13 +560,6 @@
             subEle && each(subEle, function(i, e) {
                 renderEle(e);
             });
-
-            //判断当前是否拥有 sv-shadow 元素
-            if (isSvShadow(e)) {
-                has_shadow = 1;
-            } else {
-                notShadowEle.push(e);
-            }
         });
 
         // 过滤 sv-shadow 元素

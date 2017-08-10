@@ -9,15 +9,18 @@
     <script src="smartjq.js"></script>
     <script src="../src/smartView.js"></script>
     <style>
-        t1 {
+        mytag,
+        t1,
+        t2 {
             display: block;
             margin: 10px 0;
+        }
+        
+        t1 {
             color: rebeccapurple;
         }
         
         t2 {
-            display: block;
-            margin: 10px 0;
             color: gold;
         }
     </style>
@@ -26,44 +29,38 @@
 <body>
     <mytag id="a" sv-register="mytag" style="display:none;">
         <div><span style="color:red;">{{a}}=>{{a}}</span></div>
+        <t1 sv-ele>t1text
+            <div>t2div
+                <t2 sv-ele></t2>
+            </div>
+        </t1>
         <div style="color:green;" sv-content></div>
         <div sv-tar="kaka" data-test="I am kaka">
             <input type="text" sv-module="a">
         </div>
-        <t1 sv-ele></t1>
-        <!-- <t2 sv-ele></t2> -->
     </mytag>
 
     <t1 id="t1" sv-register="t1" style="display:none;">
         <!-- {{a}} <br>t1= -->
         t1 => {{a}}
         <div sv-content></div>
+        <t2 sv-ele></t2>
         <input type="text" sv-module="a">
     </t1>
 
-    <!-- <t2 sv-register="t2" id="t2" style="display:none;">
-        t2=
-        <span>{{a}}</span>
+    <t2 sv-register="t2" id="t2" style="display:none;">
+        t2 = {{a}}
         <div sv-content></div>
         <input type="text" sv-module="a">
-    </t2> -->
+    </t2>
 
     <mytag sv-ele>testtag</mytag>
 
     <t1 sv-ele a="I am t1"> t1t1t1t1 </t1>
 
-    <!-- <t2 sv-ele a="I am t2"></t2> -->
+    <t2 sv-ele a="I am t2"></t2>
 
     <script>
-        sv.register({
-            ele: "#t1",
-            render: function($this) {
-                console.log('#t1', $this);
-            },
-            data: {
-                a: "hahat1"
-            }
-        });
         // 注册新元素
         sv.register({
             ele: '#a',
@@ -94,15 +91,26 @@
                 console.log('#a $this =>', $this);
             }
         });
-        // sv.register({
-        //     ele: "#t2",
-        //     render: function($this) {
-        //         console.log('#t2', $this);
-        //     },
-        //     data: {
-        //         a: "kakat2"
-        //     }
-        // });
+        setTimeout(function() {
+            sv.register({
+                ele: "#t2",
+                render: function($this) {
+                    console.log('#t2', $this);
+                },
+                data: {
+                    a: "kakat2"
+                }
+            });
+        }, 1000);
+        sv.register({
+            ele: "#t1",
+            render: function($this) {
+                console.log('#t1', $this);
+            },
+            data: {
+                a: "hahat1"
+            }
+        });
     </script>
 </body>
 
