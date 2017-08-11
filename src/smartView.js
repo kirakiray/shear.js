@@ -229,9 +229,7 @@
                 if (tagdata.relys.length) {
                     each(tagdata.relys, function(i, e) {
                         // 渲染内部元素
-                        $$(e + '[sv-ele]', ele).each(function(i, e) {
-                            renderEle(e);
-                        });
+                        $(e + '[sv-ele]', ele);
                     });
                 }
 
@@ -795,21 +793,61 @@
 
                 return this;
             } else {
+                // 目标元素
                 var tar = this[0];
-                tar = tar.cloneNode(true);
 
-                // 先删除所有 sv-shadow
-                $$('[sv-shadow]:not([sv-content])', tar).remove();
+                if (tar.svRender) {
+                    // 复制 $content 内的元素
+                    tar = tar._svData.$content;
 
-                // 替换所有的 sv-content
-                $$('[sv-content]', tar).reverse().each(function(i, e) {
-                    var tar = this;
-                    var par = tar.parentNode;
-                    each(this.childNodes, function(i, e) {
-                        par.insertBefore(e, tar);
+                    if (!tar) {
+                        return "";
+                    }
+
+                    tar = tar[0].cloneNode(true);
+
+                    // 查找所有元素
+                    $$('[sv-shadow]', tar).each(function(i, e) {
+                        // 一开始本来就是sv-content的暂时保留
+                        if (hasAttr(e, "sv-content")) {
+                            return;
+                        }
+
+                        // 判断当前的元素父层没有
+                        // 遍历这个元素的父层，如果先判断到出现sv-render就删除，判断到sv-content就保留
+                        var canout = 0,
+                            par = e;
+                        do {
+                            par = par.parentNode;
+                            if (!par) {
+                                // 到顶层的跳出循环
+                                canout = 1;
+                            } else if (hasAttr(par, "sv-render")) {
+                                // sv-render内的可以删掉
+                                $$(e).remove();
+                                canout = 1;
+                            } else if (hasAttr(par, "sv-content")) {
+                                // sv-content内的可以保留
+                                canout = 1;
+                            }
+                        }
+                        while (!canout)
                     });
-                    $$(tar).remove();
-                });
+
+                    // 替换掉sv-content的内容到外面
+                    $$('[sv-content]', tar).each(function(i, e) {
+                        if (0 in e.childNodes) {
+                            var childs = makearray(e.childNodes);
+                            var par = e.parentNode;
+
+                            // 置换内容
+                            each(childs, function(i, e2) {
+                                par.insertBefore(e2, e);
+                            });
+                            par.removeChild(e);
+                        }
+                    });
+                }
 
                 return o_func.call($$(tar));
             }
