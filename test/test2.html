@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>test2</title>
     <script src="smartjq.js"></script>
-    <script src="../src/smartView.js"></script>
+    <script src="../src/shear-no-smartjq.js"></script>
 </head>
 
 <body>
@@ -19,14 +19,14 @@
             console.log(...arg);
         }
     };
-    sv.extend({
+    shear.extend({
         tag: "tag-1",
         render: function() {
             assert.ok(1, 'extend ok');
         }
     });
 
-    sv.register({
+    shear.register({
         ele: "<tag-1 sv-register='tag-1'>{{a}} <br> <tag-2 sv-ele b='tag2_ye' sv-tar='t2'> </tag-2> <br> <tag-3 sv-ele></tag-3> <div sv-tar='test'></div> </tag-1>",
         data: {
             a: "I am testtag1"
@@ -36,7 +36,7 @@
         }
     });
 
-    sv.register({
+    shear.register({
         ele: "<tag-2 sv-register='tag-2'>{{b}}<span sv-content></span></tag-2>",
         props: ['b'],
         data: {
@@ -44,7 +44,7 @@
         }
     });
 
-    sv.register({
+    shear.register({
         ele: "<tag-3 sv-register='tag-3'>{{c}}</tag-3>",
         data: {
             c: "tag3"

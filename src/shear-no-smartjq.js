@@ -667,7 +667,7 @@
             }
 
             // expr
-            if (!expr || (expr && judgeEle(par, expr))) {
+            if ((!expr || (expr && judgeEle(par, expr))) && arr.indexOf(par) == -1) {
                 arr.push(par);
             }
 
@@ -847,6 +847,13 @@
                             par.removeChild(e);
                         }
                     });
+
+                    // 替换sv-render为sv-ele
+                    $$(tar, '[sv-render]').each(function(i, e) {
+                        debugger;
+                        e.removeAttribute('sv-render');
+                        e.setAttribute('sv-ele', "");
+                    });
                 }
 
                 return o_func.call($$(tar));
@@ -894,5 +901,10 @@
         }
     };
 
-    glo.sv = sv;
+    glo.shear = sv;
+
+    // 程序加载完成后，执行以下初始化
+    $(function() {
+        $('[sv-ele]');
+    });
 })(window, window.$);

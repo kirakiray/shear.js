@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>随便测试一下</title>
+    <title>test</title>
     <script src="smartjq.js"></script>
-    <script src="../src/smartView.js"></script>
+    <script src="../src/shear-no-smartjq.js"></script>
     <style>
         mytag,
         t1,
@@ -53,7 +53,10 @@
         <input type="text" sv-module="a">
     </t2>
 
-    <mytag sv-ele>testtag</mytag>
+    <mytag sv-ele>testtag
+
+        <t2 sv-ele>t2test</t2>
+    </mytag>
 
     <!-- <t1 sv-ele a="I am t1"> t1t1t1t1 </t1>
 
@@ -61,7 +64,7 @@
 
     <script>
         // 注册新元素
-        sv.register({
+        shear.register({
             ele: '#a',
             // 与属性绑定的数据
             attrs: ["a", "bb"],
@@ -91,7 +94,7 @@
             }
         });
         setTimeout(function() {
-            sv.register({
+            shear.register({
                 ele: "#t2",
                 render: function($this) {
                     console.log('#t2', $this);
@@ -101,7 +104,7 @@
                 }
             });
         }, 1000);
-        sv.register({
+        shear.register({
             ele: "#t1",
             render: function($this) {
                 console.log('#t1', $this);
