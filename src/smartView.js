@@ -796,7 +796,7 @@
                 // 目标元素
                 var tar = this[0];
 
-                if (tar.svRender) {
+                if (tar && tar.svRender) {
                     // 复制 $content 内的元素
                     tar = tar._svData.$content;
 
