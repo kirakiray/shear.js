@@ -5,19 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>normal test</title>
+    <title>shear test</title>
     <link rel="stylesheet" href="swiper.min.css">
-    <script src="../../test/smartjq.js"></script>
-    <script src="../../src/shear-no-smartjq.js"></script>
+    <script src="../../src/shear.js"></script>
     <script src="swiper.shear.min.js"></script>
 </head>
 
 <body>
-    <swiper sv-ele style="width:320px;height:240px;" autoplay="2000">
+    <!-- 这个swiper只封装了autoplay一个属性 -->
+    <swiper id="a" sv-ele style="width:320px;height:240px;" autoplay="1000">
         <div class="swiper-slide" style="background-color:#0a0;">slider1</div>
         <div class="swiper-slide" style="background-color:#0ff;">slider2</div>
         <div class="swiper-slide" style="background-color:#f0f;">slider3</div>
     </swiper>
 </body>
+<script>
+    // $(function() {
+    //     // 获取实例化对象
+    //     var swiper = $('#a').swiper;
+    //     console.log(swiper);
+    // });
+</script>
 
 </html>

@@ -383,6 +383,9 @@
                 }
             }
 
+            // 设置别渲染了哈
+            ele.svRender = 9;
+
             if (tagdata.relyOk) {
                 renderFunc();
                 renderFunc = null;
@@ -850,7 +853,6 @@
 
                     // 替换sv-render为sv-ele
                     $$(tar, '[sv-render]').each(function(i, e) {
-                        debugger;
                         e.removeAttribute('sv-render');
                         e.setAttribute('sv-ele', "");
                     });
