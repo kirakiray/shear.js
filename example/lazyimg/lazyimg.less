@@ -1,0 +1,42 @@
+lazyimg {
+    display: inline-block;
+    position: relative;
+    background-color: #eee;
+    background-image: url(loading_icon.png);
+    background-repeat: no-repeat;
+    background-size: 64px 64px;
+    background-position: center;
+
+    // 进度条
+    .lazyimg_progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        .lazyimg_progress_in{
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 4px;
+            width: 0%;
+            background-color: #47a3b7;
+            transition: all ease .3s;
+        }
+    }
+
+    .lazyimg_inborder,
+    .lazyimg_main {
+        position: absolute;
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+    }
+    .lazyimg_main {
+        opacity: 0;
+        transition: opacity ease .5s;
+        background-size: cover;
+    }
+}

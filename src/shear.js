@@ -1901,51 +1901,51 @@
     // smartView的set方法
     var smartView_set = function(k, value) {
         //判断是否存在，不存在才设定
-        if (k in this) {
-            console.warn('the value has been setted');
-            this[k] = value;
-        } else {
-            this._data[k] = value;
-            Object.defineProperty(this, k, {
-                get: function() {
-                    return this._data[k];
-                },
-                set: function(val) {
-                    // 分为私有和公用的
-                    var data = {
-                        // before
-                        b: this._data[k],
-                        // after
-                        a: val
-                    };
-                    var _this = this;
+        // if (k in this) {
+        //     console.warn('the value has been setted');
+        //     this[k] = value;
+        // } else {
+        this._data[k] = value;
+        Object.defineProperty(this, k, {
+            get: function() {
+                return this._data[k];
+            },
+            set: function(val) {
+                // 分为私有和公用的
+                var data = {
+                    // before
+                    b: this._data[k],
+                    // after
+                    a: val
+                };
+                var _this = this;
 
-                    // 触发修改数据事件
-                    _this.triggerHandler("_sv_c_" + k, data);
+                // 触发修改数据事件
+                _this.triggerHandler("_sv_c_" + k, data);
 
-                    // 触发 watch 绑定事件
-                    var tars = _this._watchs[k];
-                    var new_tars = [];
-                    if (tars) {
-                        tars.forEach(function(e) {
-                            if (e.t > 0) {
-                                e.t--;
-                            }
-                            e.c(_this._data[k], val);
-                            if (e.t > 0) {
-                                new_tars.push(e);
-                            }
-                        });
-                    }
-                    _this._watchs[k] = new_tars;
-
-                    // 设置真实值
-                    _this._data[k] = val;
-
-                    // _this = null;
+                // 触发 watch 绑定事件
+                var tars = _this._watchs[k];
+                var new_tars = [];
+                if (tars) {
+                    tars.forEach(function(e) {
+                        if (e.t > 0) {
+                            e.t--;
+                        }
+                        e.c.call(_this, _this._data[k], val);
+                        if (e.t > 0) {
+                            new_tars.push(e);
+                        }
+                    });
                 }
-            });
-        }
+                _this._watchs[k] = new_tars;
+
+                // 设置真实值
+                _this._data[k] = val;
+
+                // _this = null;
+            }
+        });
+        // }
     };
 
     // 生成专用smartview Class
@@ -2103,12 +2103,20 @@
                     });
                 }
 
+                // 绑定watch对象
+                tagdata.watch && each(tagdata.watch, function(k, v) {
+                    svEle.watch(k, v);
+                });
+
                 // 设定值
                 each(tagdata.data, function(k, v) {
                     if (typeof v === "object") {
                         v = JSON.parse(JSON.stringify(v));
                     }
-                    svEle[k] = v;
+                    // 如果不在 attrs 或 props 上在设定
+                    if (tagdata.attrs.indexOf(k) == -1 && tagdata.props.indexOf(k) == -1) {
+                        svEle[k] = v;
+                    }
                 });
 
                 // 绑定attrs数据
@@ -2116,9 +2124,15 @@
                     var attrValue = ele.getAttribute(k);
                     // 判断是否自定义属性，具有优先级别
                     if (attrValue) {
-                        if (!(k in svEle)) {
-                            svEle.set(k, attrValue);
+                        if (k in svEle) {
+                            if (svEle[k] && svEle[k] === $_fn[k]) {
+                                svEle.set(k);
+                                svEle[k] = attrValue;
+                            } else {
+                                svEle[k] = attrValue;
+                            }
                         } else {
+                            svEle.set(k);
                             svEle[k] = attrValue;
                         }
                     }
@@ -2198,6 +2212,8 @@
             data: {},
             // 原型链对象，不会被监听
             proto: "",
+            // 直接绑定属性变化函数
+            // watch:{},
             //每次初始化都会执行的函数
             render: function() {},
             // 是否渲染模板元素
@@ -2268,6 +2284,7 @@
             data: defaults.data,
             render: defaults.render,
             val: defaults.val,
+            watch: defaults.watch,
             sv: createSmartViewClass(defaults.proto),
             // 所有依赖的自定义tag
             relys: relys,
