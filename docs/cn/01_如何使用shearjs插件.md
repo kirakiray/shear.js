@@ -1,14 +1,91 @@
-## 如何使用shear.js插件？
+# shear.js
 
-首先引入shear.js这个库；
+## shear.js 是什么？
 
-`<script src="shear.js"></script>`
+shear.js 是一套 使用 jQuery API 的库来编写 web组件 的库（注意是不是基于jQuery而是基于它的类似的库开发的）;
 
-接下来，加载相应使用`shear.js` 编写的插件；
+`shear.js` 包含了一套完整的 jQuery API 的实现逻辑，基于 [smartyJQ](https://github.com/kirakiray/smartJQ) 的 `smartjq-recommend` 版本开发，相当于你不用加载`jQuery`，就能使用几乎全功能的 jQuery（除了 `Deferred API` 和 `Ajax API` 相应的请使用 `Promise` 和 `Fetch API` 代替，在不能使用的浏览器上使用Profill）；
 
-*后面将 使用`shear.js`编写的插件 写成 shear插件；*
+## 什么是web组件？
 
-比如，下面使用 swiper修正的shear插件（在example里有案例）；
+先说一下我们怎样使用html作开发的；
+
+假如想要给我们的html里加入一个选项框，我们会这么做；
+
+```html
+<select>
+    <option value="1">one</option>
+    <option value="2">two</option>
+    <option value="3">three</option>
+</select>
+```
+
+上面的html结构，就是一个很普通的选项框，包含3个选项 one、two和three，而且它们提交的真实值分别是 1、2和3；
+
+但你知不知道，这个简单的选项框里，浏览器其实帮你封装了一整套的逻辑，才能使得你用起来这么方便；
+
+现在来拆分一下，浏览器到底帮你少干了什么活；
+
+* 实现了选项框的UI；
+* 点击选项框后，弹出选项菜单的逻辑；
+* 点击菜单后，切换值的；
+* 动态改变value;
+
+如果你能看懂上面的拆分，就会明白，这是一个用js封装选项框插件的基本逻辑；
+
+那回到正题，什么是web组件？
+
+web组件就是 *让你只使用html就能构建插件逻辑*，用起来更方便的插件；
+
+这么说你可能还不懂，那我们举个常用的例子；
+
+比如常用的 图片画廊 插件（就是那种可以左右滑动图片的插件，门户网站首页基本定会有的东西），用个有名的画廊插件做案例，[swiper](http://www.swiper.com.cn)；
+
+我们是如何使用swiper这个插件的？
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>normal swiper test</title>
+    <link rel="stylesheet" href="swiper.min.css">
+    <script src="jquery-2.1.3.js"></script>
+    <script src="swiper.jquery.js"></script>
+</head>
+
+<body>
+    <div class="swiper-container" style="width:320px;height:240px;">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide" style="background-color:#0a0;">slider1</div>
+            <div class="swiper-slide" style="background-color:#0ff;">slider2</div>
+            <div class="swiper-slide" style="background-color:#f0f;">slider3</div>
+        </div>
+    </div>
+    <script>
+        var mySwiper = new Swiper('.swiper-container', {
+            autoplay: 2000, //可选选项，自动滑动
+        })
+    </script>
+</body>
+
+</html>
+```
+
+讲解一下使用官方 `swiper` 的最基础步骤；
+
+* 引入依赖文件（`jQuery` `swiper.jquery.js` 和 `swiper.min.css`）;
+* 创建 swiper-container 父容器;
+* 创建滑动容器 swiper-wrapper;
+* 设置内部主体元素；
+* 写一段js初始化;
+
+如果我们要改变当前swiper的一些状态，必须暴露 js 中的实例化对象，通过修改指定属性或方法来修正；
+
+如果我们利用 `shear.js` 改造一下swiper插件，让它变成 web组件 ，那么使用起来会是怎样的？
 
 ```html      
 <!DOCTYPE html>
@@ -35,57 +112,45 @@
 </html>
 ````
 
-如果想要获取实例化的对象，可以直接获取定义的属性；
+解析一下使用步骤：
+
+* 引入依赖文件（`shear.js` `swiper.shear.js` 和 `swiper.min.css`）;
+* 创建父容器 `swiper`;
+* 设置内部主体元素;
+
+三个步骤就能使用了；
+
+如果想要操作实例化的对象，可以直接获取定义的属性；
 
 ```javascript
 var mySwiper = $('#a').swiper;
 ```
 
+对比原来的 swiper 插件，web组件化后使用起来多了以下优势；
 
-在案例中使用swiper没有再写一次js初始化操作，这是 web components 的一个优势；
+* 不需要定义特定的html结构；（相对使用者而言，特定的html结构是无用的，没有任何意义，只会影响理解和使用）;
+* 不需要js初始化元素；（少了初始化步骤更方便使用）;
 
-下面是以往我们使用swiper的操作：
+看完你会发现，web组件化 之后，我们使用 swiper 更像是在使用 **选项框** 一样，没有多余的操作，数据结构清晰，一眼明了；
+
+再说一次，web组件就是*让你只使用html就能构建插件逻辑*，用起来更方便的插件；
+
+## 如何使用shear.js插件？
+
+首先引入shear.js这个库；
 
 ```html
-<!DOCTYPE html>
-<html lang="en">
+<script src="shear.js"></script>
+````
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>normal test</title>
-    <link rel="stylesheet" href="swiper.min.css">
-    <script src="jquery-2.1.3.js"></script>
-    <script src="swiper.jquery.js"></script>
-</head>
+接下来，加载相应使用`shear.js` 编写的组件；
 
-<body>
-    <div class="swiper-container" style="width:320px;height:240px;">
-        <div class="swiper-wrapper">
-            <div class="swiper-slide" style="background-color:#0a0;">slider1</div>
-            <div class="swiper-slide" style="background-color:#0ff;">slider2</div>
-            <div class="swiper-slide" style="background-color:#f0f;">slider3</div>
-        </div>
-    </div>
-    <script>
-        var mySwiper = new Swiper('.swiper-container', {
-            autoplay: 2000, //可选选项，自动滑动
-        })
-    </script>
-</body>
-
-</html>
-```
-
-对比可以看出，shear的版本的结构更加清晰，而且更方便使用；
-
-因为 web components 的概念是，让你使用插件更像是在使用原生的html对象。
-
-## shear.js 是什么？
-
-`shear.js` 包含了一套 jQuery API 的实现逻辑，基于 [smartyJQ](https://github.com/kirakiray/smartJQ) 的 `smartjq-recommend` 版本开发，相当于你不用加载`jQuery`，就能使用几乎全功能的 jQuery（除了 `Deferred API` 和 `Ajax API` 相应的请使用 `Promise` 和 `Fetch API` 代替，在不能使用的浏览器上使用Profill）；
+*后面将 使用`shear.js`编写的插件 写成 shear插件；*
 
 ## 如何编写shear.js插件？
 
-首先，你得会开发普通的jQuery插件；
+如果你成功的开发过jQuery插件，那你也能开发shear插件；
+
+接下进入开发教程；
+
+[shear模板](02_模板.md)
