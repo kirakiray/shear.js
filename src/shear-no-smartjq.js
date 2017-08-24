@@ -917,7 +917,8 @@
             if (svdata) {
                 return svdata.init(ele);
             }
-        }
+        },
+        is: function() {}
     };
 
     glo.shear = sv;
