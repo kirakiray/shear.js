@@ -10,4 +10,4 @@ The implementation of web components;
 
 ## document
 
-[中文文档](docs/cn/01_如何使用shearjs插件.md)
+[中文文档](docs/cn/01_web组件和shearjs.md)
