@@ -2135,6 +2135,8 @@
                             svEle.set(k);
                             svEle[k] = attrValue;
                         }
+                    } else if (tagdata.data[k]) {
+                        svEle[k] = tagdata.data[k];
                     }
 
                     // 判断是否存在，不存在就set
