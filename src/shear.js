@@ -266,9 +266,14 @@
     var transToEles = function(str) {
         var par = DOCUMENT.createElement('div');
         par.innerHTML = str;
-        var ch = makeArray(par.children);
+        var ch = makeArray(par.childNodes);
         par.innerHTML = "";
-        return ch;
+        return ch.filter(function(e) {
+            var isInText = e instanceof Text;
+            if ((isInText && e.textContent) || !isInText) {
+                return e;
+            }
+        });
     };
 
     //main
@@ -371,9 +376,12 @@
             if (getType(name) === STR_object) {
                 arrayEach(this, function(e) {
                     objEach(name, function(n, v) {
-                        var psv = parseFloat(v);
-                        if (psv && psv === v) {
-                            v += "px";
+                        // 判断单位是否px
+                        var orival = String(getComputedStyle(e)[n]);
+                        if (orival.search('px') > -1) {
+                            if (String(v).search('px') == -1) {
+                                orival += "px";
+                            }
                         }
                         e.style[n] = v;
                     });
@@ -1782,7 +1790,6 @@
         this._aEnd(aEndArg);
     }
 })(window);
-
 (function(glo, $) {
     "use strict";
     // base
@@ -2214,7 +2221,7 @@
             data: {},
             // 原型链对象，不会被监听
             proto: "",
-            // 直接绑定属性变化函数
+            // 直接绑定属性变化函数，在设置data的时候就会开始触发
             // watch:{},
             //每次初始化都会执行的函数
             render: function() {},
@@ -2537,7 +2544,7 @@
         var o_func = $.fn[e];
         $.fn[e] = function(tar) {
             n_ec.call(this, tar, function(e, tar) {
-                if (isSvShadow(e) && !hasAttr(tar, 'sv-content')) {
+                if ((isSvShadow(e) && !hasAttr(e, 'sv-content')) || hasAttr(e, "sv-render")) {
                     tar[0] && tar[0].setAttribute('sv-shadow', "");
                 }
                 if (e.svRender && e._svData.$content) {
@@ -2704,7 +2711,8 @@
             if (svdata) {
                 return svdata.init(ele);
             }
-        }
+        },
+        is: function() {}
     };
 
     glo.shear = sv;

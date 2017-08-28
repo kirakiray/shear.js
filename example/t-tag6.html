@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>t-tag test6</title>
+    <script src="../test/smartjq.js"></script>
+    <script src="../src/shear-no-smartjq.js"></script>
+    <style>
+        t-tag {
+            display: block;
+        }
+        
+        t-tag .t-tag-inner {
+            width: 200px;
+            text-align: center;
+            line-height: 50px;
+            background-color: #eee;
+        }
+        
+        t-tag[fcolor="green"] {
+            color: green;
+        }
+        
+        t-tag[fcolor="red"] {
+            color: red;
+        }
+        
+        t-tag[fcolor="blue"] {
+            color: blue;
+        }
+    </style>
+    <script>
+        shear.register({
+            ele: $(`
+                <div sv-register="t-tag">
+                    <div class="t-tag-inner">
+                        <div sv-content></div>
+                        <input type="text" sv-module="fcolor" />
+                    </div>
+                </div>
+            `),
+            attrs: ['fcolor'],
+            data: {
+                fcolor: "red"
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <t-tag id="a" fcolor="blue" sv-ele>I am tag6</t-tag>
+</body>
+
+</html>

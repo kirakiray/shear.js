@@ -752,7 +752,7 @@
         var o_func = $.fn[e];
         $.fn[e] = function(tar) {
             n_ec.call(this, tar, function(e, tar) {
-                if (isSvShadow(e) && !hasAttr(tar, 'sv-content')) {
+                if ((isSvShadow(e) && !hasAttr(e, 'sv-content')) || hasAttr(e, "sv-render")) {
                     tar[0] && tar[0].setAttribute('sv-shadow', "");
                 }
                 if (e.svRender && e._svData.$content) {
