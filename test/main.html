@@ -444,12 +444,12 @@
 
         <div class="test_group">
             <script>
-                QUnit.test("extend & rely test", function(assert) {
+                QUnit.test("after & rely test", function(assert) {
                     assert.expect(6);
-                    shear.extend({
+                    shear.after({
                         tag: "tag-1",
                         render: function() {
-                            assert.ok(1, 'extend ok');
+                            assert.ok(1, 'after ok');
                         }
                     });
 

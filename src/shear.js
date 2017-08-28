@@ -1879,12 +1879,20 @@
                 // 注册0次的请打死他
                 return;
             }
-            var tars = this._watchs[keyname] || (this._watchs[keyname] = []);
-            tars.push({
-                t: times || Infinity,
-                c: callback
-            });
-            // tars.push(callback);
+
+            if (getType(keyname) === "object") {
+                var _this = this;
+                each(keyname, function(k, c) {
+                    _this.watch(k, c);
+                });
+                _this = null;
+            } else if (keyname && callback) {
+                var tars = this._watchs[keyname] || (this._watchs[keyname] = []);
+                tars.push({
+                    t: times || Infinity,
+                    c: callback
+                });
+            }
         },
         // 取消检测变动函数
         unwatch: function(keyname, callback) {
@@ -2111,9 +2119,7 @@
                 }
 
                 // 绑定watch对象
-                tagdata.watch && each(tagdata.watch, function(k, v) {
-                    svEle.watch(k, v);
-                });
+                tagdata.watch && svEle.watch(tagdata.watch);
 
                 // 设定值
                 each(tagdata.data, function(k, v) {
@@ -2129,6 +2135,12 @@
                 // 绑定attrs数据
                 tagdata.attrs && tagdata.attrs.forEach(function(k) {
                     var attrValue = ele.getAttribute(k);
+                    // 属性绑定
+                    svEle.on('_sv_c_' + k, function(e, data) {
+                        // 绑定属性
+                        ele.setAttribute(k, data.a);
+                    });
+
                     // 判断是否自定义属性，具有优先级别
                     if (attrValue) {
                         if (k in svEle) {
@@ -2145,19 +2157,6 @@
                     } else if (tagdata.data[k]) {
                         svEle[k] = tagdata.data[k];
                     }
-
-                    // 判断是否存在，不存在就set
-                    if (!(k in svEle)) {
-                        svEle.set(k, "");
-                        ele.setAttribute(k, "");
-                    } else {
-                        ele.setAttribute(k, svEle[k]);
-                    }
-
-                    svEle.on('_sv_c_' + k, function(e, data) {
-                        // 绑定属性
-                        ele.setAttribute(k, data.a);
-                    });
                 });
 
                 // 设置props数据
@@ -2544,7 +2543,8 @@
         var o_func = $.fn[e];
         $.fn[e] = function(tar) {
             n_ec.call(this, tar, function(e, tar) {
-                if ((isSvShadow(e) && !hasAttr(e, 'sv-content')) || hasAttr(e, "sv-render")) {
+                // if ((isSvShadow(e) && !hasAttr(e, 'sv-content')) || hasAttr(e, "sv-render")) {
+                if ((isSvShadow(e) && !hasAttr(e, 'sv-content'))) {
                     tar[0] && tar[0].setAttribute('sv-shadow', "");
                 }
                 if (e.svRender && e._svData.$content) {
@@ -2691,7 +2691,7 @@
         // 暴露注册插件的方法
         register: register,
         // 简单的后续扩展插件的方法
-        extend: function(options) {
+        after: function(options) {
             var defaults = {
                 // 注册的tag
                 tag: "",
