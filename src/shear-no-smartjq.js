@@ -415,7 +415,9 @@
     var register = function(options) {
         var defaults = {
             // 模板元素
-            ele: "",
+            // ele: "",
+            name: "",
+            template: "",
             // 需要动态更新监听的属性
             attrs: [],
             // 需要挂载数据的属性
@@ -439,32 +441,35 @@
 
         //获取tag
         var tagname, code, ele;
-        if (defaults.ele) {
-            ele = $$(defaults.ele)[0];
-
-            // 需要注册的tag名
-            tagname = ele.getAttribute('sv-register') || getRenderTagName(ele);
-
-            // 把子元素有内容的textNode转换成spanNode
-            var childnodes = ele.childNodes;
-            each(childnodes, function(i, e) {
-                if (e instanceof Text && e.textContent.trim()) {
-                    var spanNode = document.createElement('span');
-                    spanNode.textContent = e.textContent;
-                    ele.insertBefore(spanNode, e);
-                    ele.removeChild(e);
-                }
-            });
-
-            // 所有内元素添加sv-shadow
-            each(ele.querySelectorAll("*"), function(i, e) {
-                e.setAttribute('sv-shadow', "");
-            });
-
-            code = ele.innerHTML;
+        if (defaults.name) {
+            ele = $('[sv-register="' + defaults.name + '"]')[0];
+        } else if (defaults.template) {
+            ele = $(defaults.template)[0];
         } else {
+            console.error('register data error');
             return;
         }
+
+        // 需要注册的tag名
+        tagname = ele.getAttribute('sv-register') || getRenderTagName(ele);
+
+        // 把子元素有内容的textNode转换成spanNode
+        var childnodes = ele.childNodes;
+        each(childnodes, function(i, e) {
+            if (e instanceof Text && e.textContent.trim()) {
+                var spanNode = document.createElement('span');
+                spanNode.textContent = e.textContent;
+                ele.insertBefore(spanNode, e);
+                ele.removeChild(e);
+            }
+        });
+
+        // 所有内元素添加sv-shadow
+        each(ele.querySelectorAll("*"), function(i, e) {
+            e.setAttribute('sv-shadow', "");
+        });
+
+        code = ele.innerHTML;
 
         // 去除无用的代码（注释代码）
         code = code.replace(/<!--.+?-->/g, "");
