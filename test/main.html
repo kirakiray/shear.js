@@ -110,7 +110,7 @@
                 assert.ok(testtag1.b !== testtag2.b, 'data ok2');
                 assert.ok(testtag1.c === testtag2.c, 'data ok3');
 
-                testtag1.watch('a', function(beforeValue, afterValue) {
+                testtag1.watch('a', function(afterValue, beforeValue) {
                     assert.ok(1, 'watch triggered');
                     assert.ok(beforeValue == "mytag", 'trigger value is ok 1');
                     assert.ok(afterValue == "tag222222222", 'trigger value is ok 2');
@@ -184,7 +184,7 @@
             QUnit.test("clone test", function(assert) {
                 // 修改数据
                 $('.b').a = "I am b";
-                var cloneEle = $('.b').clone();
+                var cloneEle = $('.b').clone()
                 assert.ok(cloneEle.html().replace(/\s/g, "") == $('.b').html().replace(/\s/g, ""), 'html ok');
                 assert.ok($('.b').a == cloneEle.a, 'data ok');
             });
