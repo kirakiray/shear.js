@@ -270,7 +270,7 @@
         par.innerHTML = "";
         return ch.filter(function(e) {
             var isInText = e instanceof Text;
-            if ((isInText && e.textContent) || !isInText) {
+            if ((isInText && e.textContent.trim()) || !isInText) {
                 return e;
             }
         });
@@ -1796,7 +1796,7 @@
     // 主体映射tag数据
     var tagDatabase = {};
     window.tagDatabase = tagDatabase;
-    var extendFuncs = {};
+    var afterFuncs = {};
 
     // function
     var makearray = $.makearray;
@@ -1834,6 +1834,20 @@
     //获取tagdata
     var getTagData = function(tagname) {
         return tagDatabase[tagname] || (tagDatabase[tagname] = $({}));
+    };
+
+    //转换字符串到html对象
+    var transToEles = function(str) {
+        var par = document.createElement('div');
+        par.innerHTML = str;
+        var ch = makearray(par.childNodes);
+        par.innerHTML = "";
+        return ch.filter(function(e) {
+            var isInText = e instanceof Text;
+            if ((isInText && e.textContent) || !isInText) {
+                return e;
+            }
+        });
     };
 
     // class
@@ -1946,7 +1960,7 @@
                         if (e.t > 0) {
                             e.t--;
                         }
-                        e.c.call(_this, _this._data[k], val);
+                        e.c.call(_this, val, _this._data[k]);
                         if (e.t > 0) {
                             new_tars.push(e);
                         }
@@ -2121,40 +2135,26 @@
                 // 绑定watch对象
                 tagdata.watch && svEle.watch(tagdata.watch);
 
-                // 设定值
-                each(tagdata.data, function(k, v) {
-                    if (typeof v === "object") {
-                        v = JSON.parse(JSON.stringify(v));
-                    }
-                    // 如果不在 attrs 或 props 上在设定
-                    if (tagdata.attrs.indexOf(k) == -1 && tagdata.props.indexOf(k) == -1) {
-                        svEle[k] = v;
-                    }
-                });
-
                 // 绑定attrs数据
                 tagdata.attrs && tagdata.attrs.forEach(function(k) {
-                    var attrValue = ele.getAttribute(k);
                     // 属性绑定
                     svEle.on('_sv_c_' + k, function(e, data) {
                         // 绑定属性
                         ele.setAttribute(k, data.a);
                     });
 
+                    // 先判断有没有data注册
+                    if (tagdata.data[k] === undefined) {
+                        svEle.set(k);
+                    }
+
+                    var attrValue = ele.getAttribute(k);
+
                     // 判断是否自定义属性，具有优先级别
                     if (attrValue) {
-                        if (k in svEle) {
-                            if (svEle[k] && svEle[k] === $_fn[k]) {
-                                svEle.set(k);
-                                svEle[k] = attrValue;
-                            } else {
-                                svEle[k] = attrValue;
-                            }
-                        } else {
-                            svEle.set(k);
-                            svEle[k] = attrValue;
-                        }
-                    } else if (tagdata.data[k]) {
+                        svEle[k] = attrValue;
+                    } else if (tagdata.data[k] !== undefined) {
+                        // 代替data设置
                         svEle[k] = tagdata.data[k];
                     }
                 });
@@ -2163,11 +2163,23 @@
                 tagdata.props && tagdata.props.forEach(function(e) {
                     var attrValue = ele.getAttribute(e);
                     if (attrValue) {
-                        if (e in svEle) {
-                            svEle[e] = attrValue;
-                        } else {
-                            svEle.set(e, attrValue);
+                        // 先判断有没有data注册
+                        if (tagdata.data[e] === undefined) {
+                            svEle.set(e);
                         }
+                        //设置值
+                        svEle[e] = attrValue;
+                    }
+                });
+
+                // 设定值
+                each(tagdata.data, function(k, v) {
+                    if (typeof v === "object") {
+                        v = JSON.parse(JSON.stringify(v));
+                    }
+                    // 如果不在 attrs 或 props 上在设定
+                    if (tagdata.attrs.indexOf(k) == -1 && tagdata.props.indexOf(k) == -1) {
+                        svEle[k] = v;
                     }
                 });
 
@@ -2182,7 +2194,7 @@
                 tagdata.render(svEle);
 
                 // 判断是否extend扩展函数
-                var extendTagData = extendFuncs[tagName];
+                var extendTagData = afterFuncs[tagName];
                 if (extendTagData) {
                     extendTagData.forEach(function(e) {
                         e.render(svEle);
@@ -2209,7 +2221,9 @@
     var register = function(options) {
         var defaults = {
             // 模板元素
-            ele: "",
+            // ele: "",
+            name: "",
+            template: "",
             // 需要动态更新监听的属性
             attrs: [],
             // 需要挂载数据的属性
@@ -2233,32 +2247,35 @@
 
         //获取tag
         var tagname, code, ele;
-        if (defaults.ele) {
-            ele = $$(defaults.ele)[0];
-
-            // 需要注册的tag名
-            tagname = ele.getAttribute('sv-register') || getRenderTagName(ele);
-
-            // 把子元素有内容的textNode转换成spanNode
-            var childnodes = ele.childNodes;
-            each(childnodes, function(i, e) {
-                if (e instanceof Text && e.textContent.trim()) {
-                    var spanNode = document.createElement('span');
-                    spanNode.textContent = e.textContent;
-                    ele.insertBefore(spanNode, e);
-                    ele.removeChild(e);
-                }
-            });
-
-            // 所有内元素添加sv-shadow
-            each(ele.querySelectorAll("*"), function(i, e) {
-                e.setAttribute('sv-shadow', "");
-            });
-
-            code = ele.innerHTML;
+        if (defaults.name) {
+            ele = $('[sv-register="' + defaults.name + '"]')[0];
+        } else if (defaults.template) {
+            ele = $(defaults.template)[0];
         } else {
+            console.error('register data error');
             return;
         }
+
+        // 需要注册的tag名
+        tagname = ele.getAttribute('sv-register') || getRenderTagName(ele);
+
+        // 把子元素有内容的textNode转换成spanNode
+        var childnodes = ele.childNodes;
+        each(childnodes, function(i, e) {
+            if (e instanceof Text && e.textContent.trim()) {
+                var spanNode = document.createElement('span');
+                spanNode.textContent = e.textContent;
+                ele.insertBefore(spanNode, e);
+                ele.removeChild(e);
+            }
+        });
+
+        // 所有内元素添加sv-shadow
+        each(ele.querySelectorAll("*"), function(i, e) {
+            e.setAttribute('sv-shadow', "");
+        });
+
+        code = ele.innerHTML;
 
         // 去除无用的代码（注释代码）
         code = code.replace(/<!--.+?-->/g, "");
@@ -2444,7 +2461,7 @@
 
                     // 接替数据
                     each(mapTar._svData._data, function(k, v) {
-                        $e[k] = v;
+                        (v !== undefined) && ($e[k] = v);
                     });
                 });
 
@@ -2509,11 +2526,15 @@
         var lastId = this.length - 1;
 
         var isfunction;
-        if (getType(tar) === "function") {
-            isfunction = 1;
-        } else {
-            // 转换元素
-            tar = $(tar);
+        switch (getType(tar)) {
+            case "function":
+                isfunction = 1;
+                break;
+            case "string":
+                tar = $(transToEles(tar));
+                break;
+            default:
+                tar = $(tar);
         }
 
         this.each(function(i, e) {
@@ -2702,7 +2723,7 @@
             $.extend(defaults, options);
 
             // 判断并加入数据对象
-            var extendTagData = extendFuncs[defaults.tag] || (extendFuncs[defaults.tag] = []);
+            var extendTagData = afterFuncs[defaults.tag] || (afterFuncs[defaults.tag] = []);
 
             extendTagData.push(defaults);
         },
@@ -2712,6 +2733,11 @@
                 return svdata.init(ele);
             }
         },
+        // 扩展方法
+        extend: function(func) {
+            func(tagDatabase);
+        },
+        // 是否 shear元素
         is: function() {}
     };
 

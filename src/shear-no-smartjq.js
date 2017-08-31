@@ -44,6 +44,20 @@
         return tagDatabase[tagname] || (tagDatabase[tagname] = $({}));
     };
 
+    //转换字符串到html对象
+    var transToEles = function(str) {
+        var par = document.createElement('div');
+        par.innerHTML = str;
+        var ch = makearray(par.childNodes);
+        par.innerHTML = "";
+        return ch.filter(function(e) {
+            var isInText = e instanceof Text;
+            if ((isInText && e.textContent) || !isInText) {
+                return e;
+            }
+        });
+    };
+
     // class
     var $_fn = $.fn;
     var bInit = $_fn.init;
@@ -720,11 +734,15 @@
         var lastId = this.length - 1;
 
         var isfunction;
-        if (getType(tar) === "function") {
-            isfunction = 1;
-        } else {
-            // 转换元素
-            tar = $(tar);
+        switch (getType(tar)) {
+            case "function":
+                isfunction = 1;
+                break;
+            case "string":
+                tar = $(transToEles(tar));
+                break;
+            default:
+                tar = $(tar);
         }
 
         this.each(function(i, e) {
