@@ -134,7 +134,7 @@
             QUnit.test("attrs & props && attr test", function(assert) {
                 // 保证不会获取到 sv-shadow 元素
                 var mytag = $('<mytag sv-ele a="mytag1">mytag1</mytag>');
-
+                assert.ok(mytag.a == "mytag1", 'attrs ok0');
                 mytag.a = "hahatag";
                 assert.ok(mytag.attr('a') == "hahatag", 'attrs ok');
                 mytag.a = "ootag";
