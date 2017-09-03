@@ -1,0 +1,37 @@
+<style>
+    t-tag {
+        display: block;
+    }
+    
+    t-tag .t-tag-inner {
+        width: 200px;
+        text-align: center;
+        line-height: 40px;
+        background-color: #eee;
+    }
+    
+    t-tag [sv-content] {
+        color: red;
+    }
+</style>
+
+
+<div sv-register="t-tag">
+    <div class="t-tag-inner" style="color:red;">
+        {{m}}
+        <div sv-content style="color:green;"></div>
+        <div sv-tar="tips" style="color:blue;">I am tips</div>
+    </div>
+</div>
+
+<script>
+    shear.register({
+        template: document.currentScript.ownerDocument.querySelector('[sv-register="t-tag"]').outerHTML,
+        render: function($ele) {
+            $ele.css("color", "red");
+        },
+        data: {
+            m: "I am message"
+        }
+    });
+</script>
