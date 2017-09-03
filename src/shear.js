@@ -2049,7 +2049,7 @@
 
                 // 还原元素
                 childNodes && childNodes.forEach(function(element) {
-                    $content.appendChild(element);
+                    $content && $content.appendChild(element);
                 });
 
                 // 初始化 sv-span 元素
@@ -2237,20 +2237,17 @@
             // 直接绑定属性变化函数，在设置data的时候就会开始触发
             // watch:{},
             //每次初始化都会执行的函数
-            render: function() {},
-            // 是否渲染模板元素
-            // 默认否，设置 true 模板元素也会被渲染
-            renderEle: 0
+            render: function() {}
         };
         // 合并选项
         $.extend(defaults, options);
 
         //获取tag
         var tagname, code, ele;
-        if (defaults.name) {
-            ele = $('[sv-register="' + defaults.name + '"]')[0];
-        } else if (defaults.template) {
+        if (defaults.template) {
             ele = $(defaults.template)[0];
+        } else if (defaults.name) {
+            ele = $('[sv-register="' + defaults.name + '"]')[0];
         } else {
             console.error('register data error');
             return;
@@ -2345,12 +2342,6 @@
             tagdata.relyOk = 1;
             // 触发可以渲染的事件
             tagdata.trigger('canRender');
-        }
-
-        if (defaults.renderEle) {
-            // 清空示例元素的内部元素，并渲染示例元素
-            ele.innerHTML = "";
-            renderEle(ele);
         }
 
         //获取需要渲染的元素进行渲染

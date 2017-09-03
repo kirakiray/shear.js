@@ -27,7 +27,7 @@
 </head>
 
 <body>
-    <mytag id="a" sv-register="mytag" style="display:none;">
+    <mytag sv-register="mytag" style="display:none;">
         <div><span style="color:red;">{{a}}=>{{a}}</span></div>
         <t1 sv-ele>t1text
             <div>t2div
@@ -40,14 +40,14 @@
         </div>
     </mytag>
 
-    <t1 id="t1" sv-register="t1" style="display:none;">
+    <t1 sv-register="t1" style="display:none;">
         t1 => {{a}}
         <div sv-content></div>
         <t2 sv-ele></t2>
         <input type="text" sv-module="a">
     </t1>
 
-    <t2 sv-register="t2" id="t2" style="display:none;">
+    <t2 sv-register="t2" style="display:none;">
         t2 = {{a}}
         <div sv-content></div>
         <input type="text" sv-module="a">
@@ -64,7 +64,7 @@
     <script>
         // 注册新元素
         shear.register({
-            ele: '#a',
+            name: 'mytag',
             // 与属性绑定的数据
             attrs: ["a", "bb"],
             // 自定义数据，会被 watch 监听
@@ -94,7 +94,7 @@
         });
         setTimeout(function() {
             shear.register({
-                ele: "#t2",
+                name: "t2",
                 render: function($this) {
                     console.log('#t2', $this);
                 },
@@ -104,7 +104,7 @@
             });
         }, 1000);
         shear.register({
-            ele: "#t1",
+            name: "t1",
             render: function($this) {
                 console.log('#t1', $this);
             },

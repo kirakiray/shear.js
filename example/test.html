@@ -16,41 +16,36 @@
         t-tag .t-tag-inner {
             width: 200px;
             text-align: center;
-            line-height: 50px;
+            line-height: 40px;
             background-color: #eee;
         }
         
-        t-tag[fcolor="green"] {
-            color: green;
-        }
-        
-        t-tag[fcolor="red"] {
+        t-tag [sv-content] {
             color: red;
-        }
-        
-        t-tag[fcolor="blue"] {
-            color: blue;
         }
     </style>
     <script>
         shear.register({
             template: `
-                <div sv-register="t-tag">
-                    <div class="t-tag-inner">
-                        <div sv-content></div>
-                        <input type="text" sv-module="fcolor" />
-                    </div>
+            <div sv-register="t-tag">
+                <div class="t-tag-inner" style="color:red;">
+                    {{m}}
+                    <div sv-content style="color:green;"></div>
+                    <div sv-tar="tips" style="color:blue;">I am tips</div>
                 </div>
-            `,
+            </div>
+        `,
+            render: function($ele) {
+                $ele.css("color", "red");
+            },
             data: {
-                fcolor: "red"
+                m: "I am message"
             }
         });
     </script>
 </head>
 
-<body>
-    <t-tag id="a" fcolor="blue" sv-ele>I am tag6</t-tag>
+<t-tag sv-ele>I am t-tag</t-tag>
 </body>
 
 </html>
