@@ -8,7 +8,7 @@
 
 ### shearjs的原理
 
-最主要的部分，shearjs是将html模板化，将定义好的 shear元素 填充为shear模板的内容；
+最主要的部分，shearjs是将html模板化，将定义好的 shear元素 填充为shear模板的内容；
 
 ```html
 <style>
@@ -47,7 +47,7 @@
 
 ![](../img/04_shearbase.png)
 
-shearjs 本质上是参考 web components 而设计的框架，但弥补了 web components 不足（例如元素间的依赖问题和兼容问题），并添加了好用的语法糖（糅合 jQuery API 和 MVVM 的部分好用的特性），并且兼容 web components ；
+shearjs 本质上是参考 web components 而设计的框架，但弥补了 web components 不足（例如元素间的依赖问题和兼容问题），并添加了好用的语法糖（糅合 jQuery API 和 MVVM 的部分好用的特性），并且兼容 web components ；
 
 下面就来一个 web components 和 shearjs 结合的案例；
 
@@ -120,7 +120,7 @@ shearjs 本质上是参考 web components 而设计的框架，但弥补了 we
 
 ![main.html](../img/04_webcomponents_shear.png)
 
-### 关于 shear元素 依赖处理
+### 关于 shear元素 依赖处理
 
 当 shear元素依赖另一个shear元素时，框架会自动识别依赖的元素，待依赖的元素注册完成后才会开始渲染当前的shear元素；
 
@@ -175,7 +175,7 @@ shearjs 本质上是参考 web components 而设计的框架，但弥补了 we
 </script>
 ```
 
-如上案例，`t-tag1` 内需要 `t-tag2`（可以说成`t-tag1`依赖`t-tag2`），所以当`t-tag2`注册完成后，会先开始渲染 `t-tag1` **内**依赖的 `t-tag2` 元素，继而触发 `t-tag1` 的渲染，最后到外面的 `t-tag2`的渲染；
+如上案例，`t-tag1` 内需要 `t-tag2`（可以说成`t-tag1`依赖`t-tag2`），所以当`t-tag2`注册完成后，会先开始渲染 `t-tag1` **内**依赖的 `t-tag2` 元素，继而触发 `t-tag1` 的渲染，最后到外面的 `t-tag2`的渲染；
 
 ![rely_example](../img/04_rely_example.png)
 
