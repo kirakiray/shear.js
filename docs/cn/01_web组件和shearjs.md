@@ -137,7 +137,7 @@ var mySwiper = $('#a').swiper;
 
 初期不考虑好使用成本，后期随着项目需求增加和团队扩张，带来的会需要更多的维护成本和学习成本，开发难度会有倍数级的增长；
 
-## 如何使用shear.js插件？
+## 如何使用 `shear.js插件`？
 
 首先引入shear.js这个库；
 
@@ -147,15 +147,59 @@ var mySwiper = $('#a').swiper;
 
 接下来，加载相应使用`shear.js` 编写的组件；
 
-*后面将 使用`shear.js`编写的插件 写成 shear插件*
+**后面将 使用 `shear.js` 编写的插件 写成 shear插件**
 
-详见 `example` 目录有使用案例;
+详见 `example` 目录有讲解案例;
 
 ## 如何编写shear.js插件？
 
 首先，你必须会使用jQuery；
 
 如果你成功的开发过jQuery插件，那你也能开发shear插件；
+
+先讲解一下怎样注册 `shear元素`；
+
+```html
+<div sv-register="t-tag">
+    <div>
+        I am t-tag
+    <div>
+</div>
+<script>
+    shear.register({
+        name:"t-tag"
+    });
+</script>
+```
+
+使用 `shear.register` 方法注册，以上案例注册一个名为 `t-tag` 的 `shear元素`；
+
+注册的方法是，通过页面的 模板元素 中添加 `sv-register`属性，并指定 shear元素 的名称，再使用 `shear-register` 指定 `name` 为当要注册的 shear元素的名称；
+
+使用时只需用注册好的shear元素为tag，并设置 `sv-ele` 属性即可；
+
+```html
+<t-tag sv-ele></t-tag>
+```
+
+当然也能通过 `template` 属性直接注册 `shear元素`；
+
+```html
+<script>
+    shear.register({
+        template:`
+            <div sv-register="t-tag">
+                <div>
+                    I am t-tag
+                <div>
+            </div>
+        `
+    });
+</script>
+```
+
+上面案例和上上案例实现的效果是一模一样的；
+
 
 接下进入开发教程；
 

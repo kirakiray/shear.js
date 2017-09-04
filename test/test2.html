@@ -19,15 +19,15 @@
             console.log(...arg);
         }
     };
-    shear.extend({
+    shear.after({
         tag: "tag-1",
         render: function() {
-            assert.ok(1, 'extend ok');
+            assert.ok(1, 'after ok');
         }
     });
 
     shear.register({
-        ele: "<tag-1 sv-register='tag-1'>{{a}} <br> <tag-2 sv-ele b='tag2_ye' sv-tar='t2'> </tag-2> <br> <tag-3 sv-ele></tag-3> <div sv-tar='test'></div> </tag-1>",
+        template: "<tag-1 sv-register='tag-1'>{{a}} <br> <tag-2 sv-ele b='tag2_ye' sv-tar='t2'> </tag-2> <br> <tag-3 sv-ele></tag-3> <div sv-tar='test'></div> </tag-1>",
         data: {
             a: "I am testtag1"
         },
@@ -37,7 +37,7 @@
     });
 
     shear.register({
-        ele: "<tag-2 sv-register='tag-2'>{{b}}<span sv-content></span></tag-2>",
+        template: "<tag-2 sv-register='tag-2'>{{b}}<span sv-content></span></tag-2>",
         props: ['b'],
         data: {
             b: "tag2"
@@ -45,7 +45,7 @@
     });
 
     shear.register({
-        ele: "<tag-3 sv-register='tag-3'>{{c}}</tag-3>",
+        template: "<tag-3 sv-register='tag-3'>{{c}}</tag-3>",
         data: {
             c: "tag3"
         }

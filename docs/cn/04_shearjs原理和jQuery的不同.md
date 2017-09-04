@@ -1,4 +1,4 @@
-## shearjs的原理和jQuery的不同
+# shearjs的原理和jQuery的不同
 
 ### 前言
 
@@ -6,7 +6,7 @@
 
 后续我们将 shear.js 封装的组件称为 `shear组件`，shear.js 定义的元素称为 `shear元素`；
 
-### shearjs的原理
+## shearjs的原理
 
 最主要的部分，shearjs是将html模板化，将定义好的 shear元素 填充为shear模板的内容；
 
@@ -120,7 +120,7 @@ shearjs 本质上是参考 web components 而设计的框架，但弥补了 web 
 
 ![main.html](../img/04_webcomponents_shear.png)
 
-### 关于 shear元素 依赖处理
+## 关于 shear元素 依赖处理
 
 当 shear元素依赖另一个shear元素时，框架会自动识别依赖的元素，待依赖的元素注册完成后才会开始渲染当前的shear元素；
 
@@ -180,3 +180,13 @@ shearjs 本质上是参考 web components 而设计的框架，但弥补了 web 
 ![rely_example](../img/04_rely_example.png)
 
 所以切记，不能依赖里出现死循环（比如 a 依赖 b ， b 依赖 c ， c 又依赖 a 等类似的情况），否则相关的 `shear元素`将会一直处于等待的状态；
+
+## shear影子元素
+
+`shear元素` 在渲染后，会填充模板的元素，这些属于模板的元素称为 `shear影子元素`；
+
+比如：
+
+```html
+
+```

@@ -16,46 +16,20 @@
     </style>
 </head>
 
-<div sv-register="t-tag1" style="display:none;">
-    <div sv-content></div>
-    <t-tag2 sv-ele data-ha="ha_in">
-        t-ta2 test content
-    </t-tag2>
-</div>
-
-<div sv-register="t-tag2" style="display:none;">
-    <div sv-content></div>
-</div>
-
-<t-tag1 sv-ele data-ha="ha1">
-    this is t-tag1
-</t-tag1>
-
-<t-tag2 sv-ele data-ha="ha2">
-    <div style="color:blue;">this is t-tag2</div>
-</t-tag2>
-
+<t-tag sv-ele>I am content</t-tag>
 </body>
 <script>
     shear.register({
-        name: "t-tag1",
+        template: `
+        <div sv-register="t-tag">
+            <div sv-content style="color:blue;"></div>
+            <div class="t-tag-ele" style="color:red;">I am t-tag-ele</div>
+        </div>
+        `,
         render: function(tar) {
-            tar.css('color', "red");
-
             console.log('t-tag1 ok' + tar.data('ha'));
         }
     });
-
-    setTimeout(function() {
-        shear.register({
-            name: "t-tag2",
-            render: function(tar) {
-                tar.css('color', "green");
-
-                console.log('t-tag2 ok ' + tar.data('ha'));
-            }
-        });
-    }, 1000);
 </script>
 
 </html>
