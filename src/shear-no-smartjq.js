@@ -275,9 +275,20 @@
                     arr.push(textnode);
                 });
 
-                // 初始设定空值
-                // 绑定text节点
+                // 初始化元素
                 var svEle = svFnData.init(ele);
+
+                // 获取sv-tar值
+                svEle.realFind('[sv-tar]').each(function() {
+                    var $ele = $$(this);
+                    var sv_tar = $ele.attr('sv-tar');
+                    sv_tar && (svFnData['$' + sv_tar] = $ele);
+                });
+
+                // 运行初始函数
+                tagdata.beforeInit(svEle);
+
+                // 初始设定空值，绑定text节点
                 each(tagdata.data, function(k, v) {
                     // 设定需要监听的key
                     svEle.set(k);
@@ -314,13 +325,6 @@
                     // 替换sv-module标识为sv-render-module
                     this.removeAttribute('sv-module');
                     this.setAttribute('sv-render-module', k)
-                });
-
-                // 获取sv-tar值
-                svEle.realFind('[sv-tar]').each(function() {
-                    var $ele = $$(this);
-                    var sv_tar = $ele.attr('sv-tar');
-                    sv_tar && (svFnData['$' + sv_tar] = $ele);
                 });
 
                 // 绑定value
@@ -401,10 +405,10 @@
                 // 执行render函数
                 tagdata.render(svEle);
 
-                // 判断是否extend扩展函数
-                var extendTagData = afterFuncs[tagName];
-                if (extendTagData) {
-                    extendTagData.forEach(function(e) {
+                // 判断是否after扩展函数
+                var afterTagData = afterFuncs[tagName];
+                if (afterTagData) {
+                    afterTagData.forEach(function(e) {
                         e.render(svEle);
                     });
                 }
@@ -444,7 +448,9 @@
             proto: "",
             // 直接绑定属性变化函数，在设置data的时候就会开始触发
             // watch:{},
-            //每次初始化都会执行的函数
+            // 初始化之前执行的callback
+            beforeInit: function() {},
+            // 初始化后会执行的callback
             render: function() {}
         };
         // 合并选项
@@ -512,6 +518,7 @@
             attrs: defaults.attrs,
             props: defaults.props,
             data: defaults.data,
+            beforeInit: defaults.beforeInit,
             render: defaults.render,
             val: defaults.val,
             watch: defaults.watch,

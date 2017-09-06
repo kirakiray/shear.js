@@ -2,7 +2,7 @@
     // base
     // shear组件 放置对象
     var shearData = {};
-    $('head').append('<style>[sv-register="dyeimg"]{display:none;}</style>');
+    $('head').append('<style>[sv-register]{display:none;}</style>');
 
     // function 
     // 获取一个shearData对象

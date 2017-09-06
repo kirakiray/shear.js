@@ -68,7 +68,7 @@
     };
 
     shear.register({
-        ele: '<div sv-register="lazyimg"><div class="lazyimg_main" sv-tar="main"></div><div class="lazyimg_progress"><div sv-tar="pEle" class="lazyimg_progress_in"></div></div><div sv-tar="inborder" class="lazyimg_inborder"></div></div>',
+        template: '<div sv-register="lazyimg"><div class="lazyimg_main" sv-tar="main"></div><div class="lazyimg_progress"><div sv-tar="pEle" class="lazyimg_progress_in"></div></div><div sv-tar="inborder" class="lazyimg_inborder"></div></div>',
         attrs: ['src', 'width', 'height', 'inborder'],
         watch: {
             width: function(beforeVal, val) {
