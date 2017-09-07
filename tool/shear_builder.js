@@ -148,7 +148,7 @@
                                     // 添加样式
                                     obj.css.forEach(function(e) {
                                         if (e.type === "style") {
-                                            scriptCode += '$("head").append("<style>' + e.content.replace(/\n/g, '').replace(/ +/g, " ") + '</style>")';
+                                            scriptCode += '$("head").append(\`<style>' + e.content.replace(/\n/g, '').replace(/ +/g, " ") + '</style>\`)';
                                             if (!--len) {
                                                 resolve();
                                             }
@@ -158,7 +158,7 @@
                                                     return f.text();
                                                 })
                                                 .then(function(content) {
-                                                    scriptCode += '$("head").append("<style>' + content.replace(/\n/g, '').replace(/ +/g, " ") + '</style>")';
+                                                    scriptCode += '$("head").append(\`<style>' + content.replace(/\n/g, '').replace(/ +/g, " ") + '</style>\`)';
                                                     if (!--len) {
                                                         resolve();
                                                     }
