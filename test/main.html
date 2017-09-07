@@ -304,7 +304,7 @@
                     mytag1.wrap(mytag2);
 
                     // 测试是不是在 $content 内
-                    assert.ok(mytag1.parent()[0] === mytag2[0], 'in $content ok');
+                    assert.ok(mytag1[0].parentElement.getAttribute('sv-content') == "", 'in $content ok');
 
                     // 添加新的
                     mytag2.wrap('<mytag sv-ele a="testcon" class="testcon"></mytag>');

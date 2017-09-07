@@ -3,13 +3,17 @@
     // base
     // 主体映射tag数据
     var tagDatabase = {};
-    window.tagDatabase = tagDatabase;
+    // glo.tagDatabase = tagDatabase;
     var afterFuncs = {};
+
+    // 获取$
+    var $$ = $;
 
     // function
     var makearray = $.makearray;
     var getType = $.type;
     var each = $.each;
+    var extend = $.extend;
     var merge = $.merge;
     var hasAttr = function(e, attrName) {
         if (!e.getAttribute) {
@@ -20,9 +24,6 @@
             return true;
         }
     };
-    var isSvShadow = function(e) {
-        return hasAttr(e, "sv-shadow");
-    };
 
     //判断元素是否符合条件
     var judgeEle = function(ele, expr) {
@@ -32,16 +33,6 @@
         }
         fadeParent.appendChild(ele.cloneNode(false));
         return 0 in $$(expr, fadeParent) ? true : false;
-    };
-
-    // 获取注册元素名
-    var getRenderTagName = function(ele) {
-        return ele.getAttribute('sv-is') || ele.tagName.toLowerCase()
-    }
-
-    //获取tagdata
-    var getTagData = function(tagname) {
-        return tagDatabase[tagname] || (tagDatabase[tagname] = $({}));
     };
 
     //转换字符串到html对象
@@ -58,36 +49,35 @@
         });
     };
 
-    // class
-    var $_fn = $.fn;
-    var bInit = $_fn.init;
-    //还原一个无影响的smartJQ
-    var smartJQ = function(selector, context) {
-        var obj = this.init(selector, context);
+    // 获取注册元素名
+    var getRenderTagName = function(ele) {
+        return ele.getAttribute('sv-is') || ele.tagName.toLowerCase()
+    }
 
-        // 判断是否sv-render元素，是的话返回一个 svRender 对象
-        if (obj.length === 1 && obj[0].svRender) {
-            var svdata = obj[0]._svData;
-            if (svdata) {
-                return svdata.init(obj[0]);
+    //获取tagdata
+    var getTagData = function(tagname) {
+        return tagDatabase[tagname] || (tagDatabase[tagname] = $({}));
+    };
+
+    // 查看是否sv-shadow的方法
+    var isSvShadow = function(e) {
+        return hasAttr(e, "sv-shadow");
+    };
+
+    // 去掉sv-shadow的方法
+    var filterShadow = function(arr) {
+        var newarr = [];
+        arr.forEach(function(e) {
+            if (!isSvShadow(e)) {
+                newarr.push(e);
             }
-        }
-
-        return obj;
-    };
-    var bfn = Object.create($_fn);
-    bfn.init = bInit;
-    bfn.realFind = function(expr) {
-        return $$(expr, this[0]);
-    };
-    smartJQ.prototype = bfn;
-    var $$ = function(s, e) {
-        return new smartJQ(s, e);
+        });
+        return newarr;
     };
 
     // SmartView 的原型链对象
-    var SmartViewFn = Object.create($_fn);
-    $.extend(SmartViewFn, {
+    var SmartViewFn = Object.create($.fn);
+    extend(SmartViewFn, {
         // 生成实例函数
         init: function(ele) {
             // 添加元素
@@ -197,7 +187,7 @@
 
         // 继承方法
         var nFn = Object.create(SmartViewFn);
-        $.extend(nFn, proto || {});
+        extend(nFn, proto || {});
 
         SmartView.prototype = nFn;
 
@@ -279,8 +269,13 @@
                 var svEle = svFnData.init(ele);
 
                 // 获取sv-tar值
-                svEle.realFind('[sv-tar]').each(function() {
-                    var $ele = $$(this);
+                svEle.realFind('[sv-tar]').each(function(i, e) {
+                    var $ele;
+                    if (e.svRender) {
+                        $ele = e._svData.init(e);
+                    } else {
+                        $ele = $$(e);
+                    }
                     var sv_tar = $ele.attr('sv-tar');
                     sv_tar && (svFnData['$' + sv_tar] = $ele);
                 });
@@ -454,7 +449,7 @@
             render: function() {}
         };
         // 合并选项
-        $.extend(defaults, options);
+        extend(defaults, options);
 
         //获取tag
         var tagname, code, ele;
@@ -512,7 +507,7 @@
 
         //注册数据
         var tagdata = getTagData(tagname);
-        $.extend(tagdata, {
+        extend(tagdata, {
             tagname: tagname,
             code: code,
             attrs: defaults.attrs,
@@ -566,18 +561,15 @@
         });
     };
 
-    // 修正原jquery方法
-    // 监听初始化jQuery函数，修正返回的实例对象
-    // 在判断是只有一个 sv元素的时候，返回sv实例对象
-    $_fn.init = function(selector, context) {
-        // 继承先前的方法
-        var obj = bInit.call(this, selector, context);
+    // 替换$
+    $ = function() {
+        var reobj = $$.apply(this, arguments);
 
         // 主动渲染 sv-ele 元素
         // 并判断是否拥有sv-shadow元素，做好重新初始化工作
         var has_shadow = 0;
         var notShadowEle = [];
-        obj.each(function(i, e) {
+        reobj.each(function(i, e) {
             //判断当前是否拥有 sv-shadow 元素
             if (isSvShadow(e)) {
                 has_shadow = 1;
@@ -598,20 +590,25 @@
 
         // 过滤 sv-shadow 元素
         if (has_shadow) {
-            obj = $$(notShadowEle);
+            reobj = $$(notShadowEle);
         }
         notShadowEle = null;
 
         // 判断是否sv-render元素，是的话返回一个 svRender 对象
-        if (obj.length === 1 && obj[0].svRender) {
-            var svdata = obj[0]._svData;
+        if (reobj.length === 1 && reobj[0].svRender) {
+            var svdata = reobj[0]._svData;
             if (svdata) {
-                return svdata.init(obj[0]);
+                return svdata.init(reobj[0]);
             }
         }
 
-        return obj;
+        return reobj;
     };
+    extend($, $$);
+    $.prototype = $.fn;
+    glo.$ = $;
+
+    // 修正jQuery的方法
 
     // 修改attr方法，设置属性前判断是否有绑定属性变量
     var o_attr = $.fn.attr;
@@ -634,82 +631,19 @@
         }
     };
 
-    // 扩展其他方法
-    // 关键的 clone 方法
-    var o_clone = $.fn.clone;
-    $.fn.clone = function(isDeep) {
-        var reObj = [];
+    // 其他方法添加过滤修正
+    ['find'].forEach(function(e) {
+        var old_fun = $.fn[e];
+        $.fn[e] = function() {
+            var reobj = old_fun.apply(this, arguments);
 
-        this.each(function(i, e) {
-            // 判断是否渲染元素
-            if (e.svRender) {
-                var nEle = e.cloneNode();
-                nEle.innerHTML = $$(e).html();
+            // 筛选不用的
+            reobj = filterShadow(reobj);
 
-                // 渲染并设置新值
-                renderEle(nEle);
-
-                var $nEle = $(nEle);
-                each(e._svData._data, function(k, v) {
-                    $nEle[k] = v;
-                });
-
-                // 先获取组团的元素
-                var cEles = $$('[sv-render]', e);
-
-                // 渲染内部元素，并设置相同的data
-                $$('[sv-render]', nEle).each(function(i, e) {
-                    renderEle(e);
-
-                    var mapTar = cEles[i];
-
-                    var $e = $(e);
-
-                    // 接替数据
-                    each(mapTar._svData._data, function(k, v) {
-                        (v !== undefined) && ($e[k] = v);
-                    });
-                });
-
-                // 加入队列
-                reObj.push(nEle);
-
-                // 不要你们了
-                nEle = $nEle = cEles = null;
-            } else {
-                // 不是的话就直接旧式拷贝
-                reObj.push(o_clone.call($$(e), isDeep)[0]);
-            }
-        });
-
-        return $(reObj);
-    };
-
-    // 关键 parent 方法
-    // unwrap
-    // var o_parent = $.fn.parent;
-    $.fn.parent = function(expr) {
-        var arr = [];
-        this.each(function(i, e) {
-            var par;
-            if (isSvShadow(e)) {
-                par = e.parentNode;
-            } else {
-                do {
-                    par = e.parentNode;
-                    e = par;
-                }
-                while (isSvShadow(par))
-            }
-
-            // expr
-            if ((!expr || (expr && judgeEle(par, expr))) && arr.indexOf(par) == -1) {
-                arr.push(par);
-            }
-
-        });
-        return $$(arr);
-    };
+            // 重新返回对象
+            return $$(reobj);
+        };
+    });
 
     // children
     var o_children = $.fn.children;
@@ -724,96 +658,9 @@
             }
             merge(arr, rearr);
         });
-        return $(arr);
+        return $$(arr);
     };
 
-    var n_ec = function(tar, func) {
-        // 重新过滤元素
-        var lastId = this.length - 1;
-
-        var isfunction;
-        switch (getType(tar)) {
-            case "function":
-                isfunction = 1;
-                break;
-            case "string":
-                tar = $(transToEles(tar));
-                break;
-            default:
-                tar = $(tar);
-        }
-
-        this.each(function(i, e) {
-            if (isfunction) {
-                var redata, $e = $(e);
-                if (e.svRender) {
-                    redata = tar(i, $e.html());
-                } else {
-                    redata = tar(i, $e.html());
-                }
-                if (redata) {
-                    $e.append(redata);
-                }
-            } else {
-                var ele = tar;
-                if (lastId !== i && tar instanceof $) {
-                    ele = tar.clone();
-                }
-
-                func(e, ele);
-            }
-        });
-    };
-
-    // append prepend appendTo prependTo wrapInner
-    ['append', 'prepend', 'wrapInner'].forEach(function(e) {
-        var o_func = $.fn[e];
-        $.fn[e] = function(tar) {
-            n_ec.call(this, tar, function(e, tar) {
-                // if ((isSvShadow(e) && !hasAttr(e, 'sv-content')) || hasAttr(e, "sv-render")) {
-                if ((isSvShadow(e) && !hasAttr(e, 'sv-content'))) {
-                    tar[0] && tar[0].setAttribute('sv-shadow', "");
-                }
-                if (e.svRender && e._svData.$content) {
-                    o_func.call(e._svData.$content, tar);
-                } else {
-                    o_func.call($$(e), tar);
-                }
-            });
-            return this;
-        };
-    });
-
-    // wrap
-    var o_wrap = $.fn.wrap;
-    $.fn.wrap = function(tar) {
-        n_ec.call(this, tar, function(e, tar) {
-            if (isSvShadow(e)) {
-                tar[0] && tar[0].setAttribute('sv-shadow', "");
-            }
-            if (tar.svRender) {
-                e.parentNode.insertBefore(tar[0], e);
-                tar.append(e);
-            } else {
-                o_wrap.call($$(e), tar);
-            }
-        });
-        return this;
-    };
-
-    // after before replaceWith replaceAll
-    ['after', 'before'].forEach(function(e) {
-        var o_func = $.fn[e];
-        $.fn[e] = function(tar) {
-            n_ec.call(this, tar, function(e, tar) {
-                if (isSvShadow(e)) {
-                    tar[0] && tar[0].setAttribute('sv-shadow', "");
-                }
-                o_func.call($$(e), tar);
-            });
-            return this;
-        };
-    });
 
     // html text
     ['html', 'text'].forEach(function(e) {
@@ -901,13 +748,168 @@
         }
     });
 
-    // empty
-    $.fn.empty = function() {
-        each(this, function(i, e) {
-            if (e.svRender && e._svData.$content) {
-                e._svData.$content[0].innerHTML = "";
+
+    // 扩展其他方法
+    // 关键的 clone 方法
+    var o_clone = $.fn.clone;
+    $.fn.clone = function(isDeep) {
+        var reObj = [];
+
+        this.each(function(i, e) {
+            // 判断是否渲染元素
+            if (e.svRender) {
+                var nEle = e.cloneNode();
+                nEle.innerHTML = $$(e).html();
+
+                // 渲染并设置新值
+                renderEle(nEle);
+
+                var $nEle = $(nEle);
+                each(e._svData._data, function(k, v) {
+                    $nEle[k] = v;
+                });
+
+                // 先获取组团的元素
+                var cEles = $$('[sv-render]', e);
+
+                // 渲染内部元素，并设置相同的data
+                $$('[sv-render]', nEle).each(function(i, e) {
+                    renderEle(e);
+
+                    var mapTar = cEles[i];
+
+                    var $e = $(e);
+
+                    // 接替数据
+                    each(mapTar._svData._data, function(k, v) {
+                        (v !== undefined) && ($e[k] = v);
+                    });
+                });
+
+                // 加入队列
+                reObj.push(nEle);
+
+                // 不要你们了
+                nEle = $nEle = cEles = null;
             } else {
-                e.innerHTML = "";
+                // 不是的话就直接旧式拷贝
+                reObj.push(o_clone.call($$(e), isDeep)[0]);
+            }
+        });
+
+        return $(reObj);
+    };
+
+    // 关键 parent 方法
+    // unwrap
+    // var o_parent = $.fn.parent;
+    $.fn.parent = function(expr) {
+        var arr = [];
+        this.each(function(i, e) {
+            var par;
+            if (isSvShadow(e)) {
+                par = e.parentNode;
+            } else {
+                do {
+                    par = e.parentNode;
+                    e = par;
+                }
+                while (isSvShadow(par))
+            }
+
+            // expr
+            if ((!expr || (expr && judgeEle(par, expr))) && arr.indexOf(par) == -1) {
+                arr.push(par);
+            }
+
+        });
+        return $$(arr);
+    };
+
+
+
+    var n_ec = function(tar, func) {
+        // 重新过滤元素
+        var lastId = this.length - 1;
+
+        var isfunction;
+        switch (getType(tar)) {
+            case "function":
+                isfunction = 1;
+                break;
+            case "string":
+                tar = $(transToEles(tar));
+                break;
+            default:
+                tar = $(tar);
+        }
+
+        this.each(function(i, e) {
+            if (isfunction) {
+                var redata, $e = $(e);
+                if (e.svRender) {
+                    redata = tar(i, $e.html());
+                } else {
+                    redata = tar(i, $e.html());
+                }
+                if (redata) {
+                    $e.append(redata);
+                }
+            } else {
+                var ele = tar;
+                if (lastId !== i && tar instanceof $) {
+                    ele = tar.clone();
+                }
+
+                func(e, ele);
+            }
+        });
+    };
+
+    // append prepend appendTo prependTo wrapInner
+    ['append', 'prepend', 'wrapInner', 'empty'].forEach(function(e) {
+        var o_func = $.fn[e];
+        $.fn[e] = function(tar) {
+            n_ec.call(this, tar, function(e, tar) {
+                if ((isSvShadow(e) && !hasAttr(e, 'sv-content'))) {
+                    tar[0] && tar[0].setAttribute('sv-shadow', "");
+                }
+                if (e.svRender && e._svData.$content) {
+                    o_func.call(e._svData.$content, tar);
+                } else {
+                    o_func.call($$(e), tar);
+                }
+            });
+            return this;
+        };
+    });
+
+    // after before replaceWith replaceAll
+    ['after', 'before'].forEach(function(e) {
+        var o_func = $.fn[e];
+        $.fn[e] = function(tar) {
+            n_ec.call(this, tar, function(e, tar) {
+                if (isSvShadow(e)) {
+                    tar[0] && tar[0].setAttribute('sv-shadow', "");
+                }
+                o_func.call($$(e), tar);
+            });
+            return this;
+        };
+    });
+
+    // wrap
+    var o_wrap = $.fn.wrap;
+    $.fn.wrap = function(tar) {
+        n_ec.call(this, tar, function(e, tar) {
+            if (isSvShadow(e)) {
+                tar[0] && tar[0].setAttribute('sv-shadow', "");
+            }
+            if (tar.svRender) {
+                e.parentNode.insertBefore(tar[0], e);
+                tar.append(e);
+            } else {
+                o_wrap.call($$(e), tar);
             }
         });
         return this;
@@ -926,12 +928,12 @@
                 render: ""
             };
             // 合并选项
-            $.extend(defaults, options);
+            extend(defaults, options);
 
             // 判断并加入数据对象
-            var extendTagData = afterFuncs[defaults.tag] || (afterFuncs[defaults.tag] = []);
+            var afterTagData = afterFuncs[defaults.tag] || (afterFuncs[defaults.tag] = []);
 
-            extendTagData.push(defaults);
+            afterTagData.push(defaults);
         },
         init: function(ele) {
             var svdata = ele._svData;
@@ -944,7 +946,9 @@
             func(tagDatabase);
         },
         // 是否 shear元素
-        is: function() {}
+        is: function() {},
+        // 原始$
+        $: $$
     };
 
     glo.shear = sv;
