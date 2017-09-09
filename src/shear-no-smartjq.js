@@ -643,8 +643,11 @@
         $.fn[e] = function() {
             var reobj = old_fun.apply(this, arguments);
 
-            // 筛选不用的
-            reobj = filterShadow(reobj);
+            // 当前元素不是阴影元素，就要筛选
+            if (this.length > 1 || !isSvShadow(this[0])) {
+                // 筛选不用的
+                reobj = filterShadow(reobj);
+            }
 
             // 重新返回对象
             return $$(reobj);

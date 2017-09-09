@@ -43,7 +43,7 @@
         <mytag sv-ele class="b2" a="b2">
             b2-1
             <mytag sv-ele class="b3" a="b3 ye ye">b3</mytag>
-            b2-2
+            <div>b2-2</div>
         </mytag>
         b1-2
         <mytag sv-ele class="b3a" a="b3a">b3a</mytag>
@@ -159,8 +159,8 @@
             $('[sv-ele]');
             QUnit.test("struct test", function(assert) {
                 // 保证不会获取到 sv-shadow 元素
-                assert.ok($('.b *').length == 3, 'struct ok');
-                assert.ok($('.b').find('*').length == 3, 'find ok');
+                assert.ok($('.b *').length == 4, 'struct ok');
+                assert.ok($('.b').find('*').length == 4, 'find ok');
                 assert.ok($('.b').children().length == 2, 'children ok');
                 // assert.ok($('.b').html() == 2, 'html ok');
             });
