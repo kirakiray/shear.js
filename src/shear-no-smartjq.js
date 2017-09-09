@@ -615,7 +615,6 @@
     glo.$ = $;
 
     // 修正jQuery的方法
-
     // 修改attr方法，设置属性前判断是否有绑定属性变量
     var o_attr = $.fn.attr;
     $.fn.attr = function(name, value) {
