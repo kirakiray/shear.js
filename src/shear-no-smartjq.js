@@ -268,6 +268,9 @@
                 // 初始化元素
                 var svEle = svFnData.init(ele);
 
+                // 渲染前执行
+                tagdata.beforeRender(svEle);
+
                 // 获取sv-tar值
                 svEle.realFind('[sv-tar]').each(function(i, e) {
                     var $ele;
@@ -443,6 +446,8 @@
             proto: "",
             // 直接绑定属性变化函数，在设置data的时候就会开始触发
             // watch:{},
+            // 渲染前执行
+            beforeRender: function() {},
             // 初始化之前执行的callback
             beforeInit: function() {},
             // 初始化后会执行的callback
@@ -513,6 +518,7 @@
             attrs: defaults.attrs,
             props: defaults.props,
             data: defaults.data,
+            beforeRender: defaults.beforeRender,
             beforeInit: defaults.beforeInit,
             render: defaults.render,
             val: defaults.val,
