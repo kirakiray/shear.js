@@ -71,7 +71,7 @@
         template: '<div sv-register="lazyimg"><div class="lazyimg_main" sv-tar="main"></div><div class="lazyimg_progress"><div sv-tar="pEle" class="lazyimg_progress_in"></div></div><div sv-tar="inborder" class="lazyimg_inborder"></div></div>',
         attrs: ['src', 'width', 'height', 'inborder'],
         watch: {
-            width: function(beforeVal, val) {
+            width: function(val) {
                 if (String(val).search('%') == -1) {
                     val += "px";
                 }
@@ -80,13 +80,13 @@
                 });
                 this.$main.css('background-size', val + "px " + this.height + "px");
             },
-            height: function(beforeVal, val) {
+            height: function(val) {
                 this.css({
                     height: val + "px"
                 });
                 this.$main.css('background-size', this.width + "px " + val + "px");
             },
-            inborder: function(beforeVal, val) {
+            inborder: function(val) {
                 this.$inborder.css('border', val);
             }
         },
