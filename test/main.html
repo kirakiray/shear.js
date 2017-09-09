@@ -161,6 +161,8 @@
                 // 保证不会获取到 sv-shadow 元素
                 assert.ok($('.b *').length == 4, 'struct ok');
                 assert.ok($('.b').find('*').length == 4, 'find ok');
+                assert.ok($('.b').find('div').length == 1, 'find ok2');
+                assert.ok($('.b').$kaka.find('*').length == 1, 'shadow element ok');
                 assert.ok($('.b').children().length == 2, 'children ok');
                 // assert.ok($('.b').html() == 2, 'html ok');
             });

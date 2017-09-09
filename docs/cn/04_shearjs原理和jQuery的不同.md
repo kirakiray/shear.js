@@ -72,13 +72,13 @@ shearjs 本质上是参考 web components 而设计的框架，但弥补了 web 
 </style>
 
 
-<div sv-register="t-tag">
+<template sv-register="t-tag">
     <div class="t-tag-inner" style="color:red;">
         {{m}}
         <div sv-content style="color:green;"></div>
         <div sv-tar="tips" style="color:blue;">I am tips</div>
     </div>
-</div>
+</template>
 
 <script>
     shear.register({
@@ -175,7 +175,7 @@ shearjs 本质上是参考 web components 而设计的框架，但弥补了 web 
 </script>
 ```
 
-如上案例，`t-tag1` 内需要 `t-tag2`（可以说成`t-tag1`依赖`t-tag2`），所以当`t-tag2`注册完成后，会先开始渲染 `t-tag1` **内**依赖的 `t-tag2` 元素，继而触发 `t-tag1` 的渲染，最后到外面的 `t-tag2`的渲染；
+如上外置模板案例，`t-tag1` 内存在 `t-tag2`（可以说成`t-tag1`依赖`t-tag2`），所以当`t-tag2`注册完成后，会先开始渲染 `t-tag1` **内**依赖的 `t-tag2` 元素，继而触发 `t-tag1` 的渲染，最后到外面的 `t-tag2`的渲染；
 
 ![rely_example](../img/04_rely_example.png)
 
@@ -183,10 +183,98 @@ shearjs 本质上是参考 web components 而设计的框架，但弥补了 web 
 
 ## shear影子元素
 
-`shear元素` 在渲染后，会填充模板的元素，这些属于模板的元素称为 `shear影子元素`；
+`shear元素` 在渲染后，会填充模板的元素，这些属于模板的元素称为 `shear影子元素`；
 
 比如：
 
 ```html
+<t-tag sv-ele id="t_tag">
+    <div id="ha">I am content</div>
+</t-tag>
 
+<script>
+    shear.register({
+        template: `
+        <div sv-register="t-tag">
+            <div sv-content style="color:blue;"></div>
+            <div class="t-tag-ele" style="color:red;">I am t-tag-ele</div>
+        </div>
+        `
+    });
+</script>
 ```
+
+渲染后的效果：
+
+![shadow element](../img/04_shadow_element.png)
+
+渲染后的代码如下：
+
+![shadow element code](../img/04_shadow_element_code.png)
+
+元素 `.t-tag-ele` 在填充模板后，增加了 `sv-shadow` 属性，这个属于 `shear影子元素`；
+
+而 `#ha` 元素属于 `#t_tag`内原本的元素，不属于 `shear影子元素`；
+
+*（在这案例之前的案例为了增强代码的可读性，没有把 `shear影子元素`的标识 `sv-shadow` 放进去）*
+
+当我们执行下面代码，会发现有什么事？
+
+![shadow element console](../img/04_shadow_element_code_2.png)
+
+虽然 `#t-tag` 内含有3个`div`，但影子元素并不会算在元素里，`shear影子元素`只是辅助填充的代码，不会被查找到，所以只会查到原来拥有的元素 `#ha`；
+
+同理，其他的方法同样回避影子元素；比如：
+
+```javascript
+$('.t-tag-ele') // => []
+```
+
+`.t-tag-ele` 属于影子元素，查找它是不存在的；
+
+再比如：
+
+```javascript
+$('#ha').parent(); // => [t-tag#t_tag]
+```
+
+`#ha`元素虽然实际父层是 `[sv-content]`元素，但是容器元素也是影子元素，会向上寻找真实的父元素，就是 `#t_tag`；
+
+所以在开发的时候，可以忽略影子元素，直接当成是原来的元素结构体来开发即可；
+
+但如果是影子元素的实例化对象，是有权限得到影子元素的，比如；
+
+```html
+<script>
+    shear.register({
+        template: `
+            <div sv-register="t-tag">
+                <div class="t-tag-inner">
+                    {{m}}
+                    <div sv-content style="color:green;"></div>
+                    <div sv-tar="tips" style="color:blue;">
+                        <span class="s_tips">I am tips</span>
+                    </div>
+                </div>
+            </div>
+        `,
+        render: function($ele) {
+            $ele.css("color", "red");
+        },
+        data: {
+            m: "I am message"
+        }
+    });
+</script>
+<body>
+    <t-tag id="a" sv-ele>I am t-tag</t-tag>
+</body>
+```
+
+```javascript
+$('#a').$tips.find('span'); // => [span.tips]
+```
+
+通过 `sv-tar` 绑定的元素，同样也是影子元素，`.s_tips`也是影子元素，影子元素获取影子元素，是成立的；
+
+*注：shear实例化对象必须是一个影子元素，才有获取到其他影子元素的权限*
