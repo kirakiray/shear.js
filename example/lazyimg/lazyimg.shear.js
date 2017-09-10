@@ -4,17 +4,17 @@
 
     // lazyload 逻辑
     var ob;
-    ob = window.IntersectionObserver && (new IntersectionObserver(
-        function(changes) {
-            changes.forEach(function(change) {
-                var target = change.target;
-                if (change.isIntersecting) {
-                    $(target).trigger('loadimg');
-                    ob.unobserve(target);
-                }
-            });
-        }
-    ));
+    // ob = window.IntersectionObserver && (new IntersectionObserver(
+    //     function(changes) {
+    //         changes.forEach(function(change) {
+    //             var target = change.target;
+    //             if (change.isIntersecting) {
+    //                 $(target).trigger('loadimg');
+    //                 ob.unobserve(target);
+    //             }
+    //         });
+    //     }
+    // ));
 
     // 通过ajax获取图片的方法
     var getImg = function(url, callback) {

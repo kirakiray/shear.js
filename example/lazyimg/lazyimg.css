@@ -1,6 +1,7 @@
 lazyimg {
   display: inline-block;
   position: relative;
+  min-height: 200px;
   background-color: #eee;
   background-image: url(loading_icon.png);
   background-repeat: no-repeat;
