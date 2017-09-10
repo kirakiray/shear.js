@@ -2407,7 +2407,6 @@
     glo.$ = $;
 
     // 修正jQuery的方法
-
     // 修改attr方法，设置属性前判断是否有绑定属性变量
     var o_attr = $.fn.attr;
     $.fn.attr = function(name, value) {
@@ -2435,8 +2434,11 @@
         $.fn[e] = function() {
             var reobj = old_fun.apply(this, arguments);
 
-            // 筛选不用的
-            reobj = filterShadow(reobj);
+            // 当前元素不是阴影元素，就要筛选
+            if (this.length > 1 || !isSvShadow(this[0])) {
+                // 筛选不用的
+                reobj = filterShadow(reobj);
+            }
 
             // 重新返回对象
             return $$(reobj);

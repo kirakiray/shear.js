@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>shear.js</title>
+    <link rel="stylesheet" href="../css/index.css">
+    <script src="../../src/shear.min.js"></script>
+    <link rel="stylesheet" href="../../example/lazyimg/lazyimg.css">
+    <script src="../../example/lazyimg/lazyimg.shear.js"></script>
+    <link rel="stylesheet" href="../../example/swiper/swiper.min.css">
+    <script src="../../example/swiper/swiper.shear.min.js"></script>
+</head>
+
+<body>
+    <article>
+        <!-- <div contenteditable="true">asd</div> -->
+        <h1>什么是shear.js？</h1>
+        <p>shear.js 让你使用 jQuery API 就能编写 <span class="color_span">web组件</span> (web components) 的库；</p>
+        <p>关于什么是 web组件，相关文献请参考 <a href="https://developer.mozilla.org/zh-CN/docs/Web/Web_Components" target="_blank">web components</a></p>
+        <h2>shear能干什么？</h2>
+        <p>它降低了web组件的开发难度，并完善了兼容性问题；</p>
+        <p>展示一下什么是 web组件；</p>
+        <p>下面这个带有 <b>提示样式</b>、<b>进度条</b>和<b>懒加载</b> 特性的图片web组件的效果： </p>
+        <div class="fade_div">
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+            <p>占位段落</p>
+        </div>
+
+        <lazyimg sv-ele width="100%" src="../../example/lazyimg/test.jpg"></lazyimg>
+        <br>
+        <br>
+
+        <p>使用它的代码只有简单的一行；</p>
+
+        <pre class="prettyprint hljs-dark" style="box-sizing: border-box; font-family: &quot;Source Code Pro&quot;, monospace; font-size: 0.9em; white-space: pre-wrap; padding: 0px; margin-top: 0px; margin-bottom: 1.1em; line-height: 1.6; word-break: break-all; word-wrap: break-word; color: rgb(51, 51, 51); background-color: rgb(246, 246, 246); border: 0px; border-radius: 5px; outline: none !important;"><code class="language-html hljs xml" style="box-sizing: border-box; font-family: &quot;Source Code Pro&quot;, monospace; font-size: inherit; padding: 0.5em; color: rgb(248, 248, 242); background-color: rgb(35, 36, 31); border-radius: 0px; display: block; outline: none !important;"><div class="hljs-line" style="box-sizing: border-box; outline: none !important; min-height: 1.5em; line-height: 1.6;"> <span class="hljs-tag" style="box-sizing: border-box; display: inline; line-height: 1.6; outline: none !important;">&lt;<span class="hljs-name" style="box-sizing: border-box; outline: none !important; display: inline; line-height: 1.6;">lazyimg</span> <span class="hljs-attr" style="box-sizing: border-box; outline: none !important; display: inline; line-height: 1.6;">sv-ele</span> <span class="hljs-attr" style="box-sizing: border-box; outline: none !important; display: inline; line-height: 1.6;">width</span>=<span class="hljs-string" style="box-sizing: border-box; outline: none !important; display: inline; line-height: 1.6; color: rgb(230, 219, 116);">"100%"</span> <span class="hljs-attr" style="box-sizing: border-box; outline: none !important; display: inline; line-height: 1.6;">src</span>=<span class="hljs-string" style="box-sizing: border-box; outline: none !important; display: inline; line-height: 1.6; color: rgb(230, 219, 116);">"test.jpg"</span>&gt;</span><span class="hljs-tag" style="box-sizing: border-box; display: inline; line-height: 1.6; outline: none !important;">&lt;/<span class="hljs-name" style="box-sizing: border-box; outline: none !important; display: inline; line-height: 1.6;">lazyimg</span>&gt;</span>
+                </div></code></pre>
+
+        <p>
+            而这个 <code class="color_span">&lt;lazyimg&gt;</code> 就是封装好的 web组件，使用起来跟 <code class="color_span">&lt;img&gt;</code> 一样，不需要特别去写javascript初始化操作，因为这些操作web组件都帮你完成了；
+        </p>
+
+        <p>
+            再举一个例子；
+        </p>
+
+        <swiper sv-ele style="width:320px;height:240px;" autoplay="1000">
+            <div class="swiper-slide" style="background-color:#0a0;">slider1</div>
+            <div class="swiper-slide" style="background-color:#0ff;">slider2</div>
+            <div class="swiper-slide" style="background-color:#f0f;">slider3</div>
+        </swiper>
+        <br>
+        <p>代码量是<img src="../img/shear_swiper_code.png" width="100%"></p>
+        <p>用起来是不是很像<code class="color_span">&lt;select&gt;</code>；同样不需要再写一遍javascript初始化操作</p>
+
+        <p>这些就是 <span class="color_span">web组件</span> ，像是注册到原生浏览器里的标签，一个使用成本很低的东西，只要你懂得html就会使用；</p>
+        <p>虽然<span class="color_span">web组件</span>使用成本低，但开发成本不低，开发一个<span class="color_span">web组件</span>需要有一定的javascript基础；并且现阶段只能在Chrome浏览器上使用； </p>
+        <p>而使用<span class="color_span">shear.js</span>来开发web组件的话，你只需要会使用 <span class="color_span">jQuery</span> 即可，并且还能使用一些MVVM框架（例如声明式渲染）的特性和jQuery的语法糖；还解决了兼容性问题（最终封装成一个js文件）；</p>
+        <p>关于如何开发 shear.js 的组件，请移步到 <a href="https://github.com/kirakiray/shear.js/blob/master/docs/cn/01_web组件和shearjs.md">shearjs组件开发</a></p>
+        <p class="article-meta">鉴于现阶段shearjs的周边调试工具还不够完善，所以不推荐在商业项目中使用该库，除非你很明白shear.js的代码，测试项目中发现问题可以提交
+            <a href="https://github.com/kirakiray/shear.js/issues">issues</a>
+        </p>
+    </article>
+</body>
+
+</html>

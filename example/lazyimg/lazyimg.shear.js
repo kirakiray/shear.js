@@ -78,6 +78,7 @@
                 this.css({
                     width: val
                 });
+
                 this.$main.css('background-size', val + "px " + this.height + "px");
             },
             height: function(val) {
@@ -110,6 +111,15 @@
                         });
                         $this.$pEle.css('opacity', 0);
                         sdata.e.off('progress');
+
+                        // 判断当前是否没有高度
+                        if (!$this.height) {
+                            var img = new Image();
+                            img.onload = function() {
+                                $this.height = parseInt($this.css('width')) * img.height / img.width;
+                            };
+                            img.src = sdata.url;
+                        }
                     });
 
                 } else if (sdata.state == 2) {
