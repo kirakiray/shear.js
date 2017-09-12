@@ -150,6 +150,12 @@
                 // 触发修改数据事件
                 _this.triggerHandler("_sv_c_" + k, data);
 
+                // 绑定值修改文本事件 和 绑定watch事件
+                var textEles = _this._svspan[k];
+                textEles && textEles.forEach(function(e) {
+                    (e.textContent = data.a)
+                });
+
                 // 触发 watch 绑定事件
                 var tars = _this._watchs[k];
                 var new_tars = [];
@@ -292,13 +298,13 @@
                     svEle.set(k);
 
                     // 绑定值修改文本事件 和 绑定watch事件
-                    svEle.on('_sv_c_' + k, function(e, data) {
-                        // 修正textEle
-                        var textEles = svspans[k];
-                        textEles && textEles.forEach(function(e) {
-                            (e.textContent = data.a)
-                        });
-                    });
+                    // svEle.on('_sv_c_' + k, function(e, data) {
+                    //     // 修正textEle
+                    //     var textEles = svspans[k];
+                    //     textEles && textEles.forEach(function(e) {
+                    //         (e.textContent = data.a)
+                    //     });
+                    // });
                 });
 
                 // 绑定sv-module

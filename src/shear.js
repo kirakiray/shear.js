@@ -1166,6 +1166,7 @@
 
             //判断第二个参数是否字符串，是的话就是目标
             switch (getType(arg2)) {
+                case "asyncfunction":
                 case STR_function:
                     callback = arg2;
                     break;
@@ -1284,19 +1285,38 @@
                         case STR_string:
                             var smartEventData_eventName = smartEventData[eventName];
                             if (!selector) {
+                                // 全部置空
+                                arrayEach(smartEventData[eventName], function(e) {
+                                    e.o = 1;
+                                });
                                 delete smartEventData[eventName];
                             } else if (arg2Type === STR_function) {
                                 smartEventData[eventName] = smartEventData_eventName.filter(function(e) {
-                                    return e.f === selector ? 0 : 1;
+                                    var rdata = 1;
+                                    if (e.f === selector) {
+                                        rdata = 0;
+                                        e.o = 1;
+                                    }
+                                    return rdata;
                                 });
                             } else if (arg2Type === STR_string) {
                                 if (!fn) {
                                     smartEventData[eventName] = smartEventData_eventName.filter(function(e) {
-                                        return e.s === selector ? 0 : 1;
+                                        var rdata = 1;
+                                        if (e.s === selector) {
+                                            rdata = 0;
+                                            e.o = 1;
+                                        }
+                                        return rdata;
                                     });
                                 } else {
                                     smartEventData[eventName] = smartEventData_eventName.filter(function(e) {
-                                        return (e.s === selector && e.f === fn) ? 0 : 1;
+                                        var rdata = 1;
+                                        if (e.s === selector && e.f === fn) {
+                                            rdata = 0;
+                                            e.o = 1;
+                                        }
+                                        return rdata;
                                     });
                                 }
                             }
@@ -1942,6 +1962,12 @@
                 // 触发修改数据事件
                 _this.triggerHandler("_sv_c_" + k, data);
 
+                // 绑定值修改文本事件 和 绑定watch事件
+                var textEles = _this._svspan[k];
+                textEles && textEles.forEach(function(e) {
+                    (e.textContent = data.a)
+                });
+
                 // 触发 watch 绑定事件
                 var tars = _this._watchs[k];
                 var new_tars = [];
@@ -2084,13 +2110,13 @@
                     svEle.set(k);
 
                     // 绑定值修改文本事件 和 绑定watch事件
-                    svEle.on('_sv_c_' + k, function(e, data) {
-                        // 修正textEle
-                        var textEles = svspans[k];
-                        textEles && textEles.forEach(function(e) {
-                            (e.textContent = data.a)
-                        });
-                    });
+                    // svEle.on('_sv_c_' + k, function(e, data) {
+                    //     // 修正textEle
+                    //     var textEles = svspans[k];
+                    //     textEles && textEles.forEach(function(e) {
+                    //         (e.textContent = data.a)
+                    //     });
+                    // });
                 });
 
                 // 绑定sv-module
