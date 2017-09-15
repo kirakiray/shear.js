@@ -43,7 +43,7 @@
         par.innerHTML = "";
         return ch.filter(function(e) {
             var isInText = e instanceof Text;
-            if ((isInText && e.textContent) || !isInText) {
+            if ((isInText && e.textContent && e.textContent.trim()) || !isInText) {
                 return e;
             }
         });
@@ -164,7 +164,8 @@
                         if (e.t > 0) {
                             e.t--;
                         }
-                        e.c.call(_this, val, _this._data[k]);
+                        var reval = e.c.call(_this, val, _this._data[k]);
+                        (reval !== undefined) && (val = reval);
                         if (e.t > 0) {
                             new_tars.push(e);
                         }
