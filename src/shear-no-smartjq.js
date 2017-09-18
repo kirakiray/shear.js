@@ -632,6 +632,8 @@
                     var tagdata = getTagData(tagname);
                     if (tagdata.attrs.indexOf(name) > -1) {
                         $(e)[name] = value;
+                    } else {
+                        o_attr.call($$(e), name, value);
                     }
                 } else {
                     o_attr.call($$(e), name, value);
