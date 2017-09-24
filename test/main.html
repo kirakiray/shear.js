@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
     <title>smartView test</title>
-    <link rel="stylesheet" href="qunit-1.15.0.css" />
+    <!-- <link rel="stylesheet" href="qunit-1.15.0.css" /> -->
+    <link rel="stylesheet" href="qunit-2.4.0.css" />
     <style>
         .test_group {
             margin-top: 50px;
@@ -19,7 +20,8 @@
             display: none;
         }
     </style>
-    <script src="qunit-1.15.0.js"></script>
+    <!-- <script src="qunit-1.15.0.js"></script> -->
+    <script src="qunit-2.4.0.js"></script>
     <script src="smartjq.js"></script>
     <script src="../src/shear-no-smartjq.js"></script>
 </head>
@@ -83,8 +85,7 @@
             val: "a",
             render: function($this) {
                 // console.log('$this =>', $this);
-            },
-            renderEle: 1
+            }
         });
     </script>
     <div class="test_group">
@@ -441,6 +442,47 @@
                         return '<mytag sv-ele class="testcon3" a="testcon3">testcon3</mytag>';
                     });
                     assert.ok(testCon.find('.testcon3').length == 2, 'function dom ok');
+                });
+            </script>
+        </div>
+
+        <div class="test_group">
+            <script>
+                QUnit.test("attached & detached test", function(assert) {
+                    assert.expect(6);
+                    var done1 = assert.async();
+                    var done2 = assert.async();
+                    shear.register({
+                        template: `
+                            <div sv-register="x1-tag">
+                                <div>I am X1 tag</div>    
+                            </div>
+                        `,
+                        render: function(ele) {
+                            assert.ok(ele.attr('sv-render') == 1, 'render ok');
+                            assert.ok(!ele.parent().length, 'parent is null ok');
+                        },
+                        attached: function(ele) {
+                            assert.ok(ele.attr('sv-render') == 1, 'attached ok');
+                            assert.ok(ele.parent().length, 'parent is not null ok');
+                            done1();
+                        },
+                        detached: function(ele) {
+                            assert.ok(ele.attr('sv-render') == 1, 'detached ok');
+                            assert.ok(!ele.parent().length, 'parent is null ok 2');
+                            done2();
+                        }
+                    });
+
+                    var x1tag = $('<x1-tag sv-ele></x1-tag>');
+
+                    // 添加进body
+                    $('body').append(x1tag);
+
+                    setTimeout(() => {
+                        // 删除
+                        x1tag.remove();
+                    }, 10);
                 });
             </script>
         </div>

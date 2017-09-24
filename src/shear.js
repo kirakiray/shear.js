@@ -153,6 +153,15 @@
             return owner.length ? owner : [owner];
         }
 
+        // 判断是否是数组
+        if (0 in owner) {
+            arrayEach(owner, function(e) {
+                var arr = findEles(e, expr);
+                merge(redata, arr);
+            });
+            return redata;
+        }
+
         //判断是否有专属选择器
         var speMatch = expr.match(spe_expr);
 
@@ -307,7 +316,7 @@
                                 }
                             });
                         });
-                    } else if (arg2 instanceof Element) {
+                    } else if (arg2 instanceof Element || arg2 instanceof smartJQ) {
                         eles = findEles(arg2, arg1);
                     } else if (!arg2) {
                         eles = findEles(DOCUMENT, arg1);
@@ -2229,6 +2238,22 @@
                         e.render(svEle);
                     });
                 }
+
+                // 注册 attached 事件
+                svEle.one('_attached', function() {
+                    tagdata.attached(svEle);
+                });
+
+                // 判断是否已经在body内，在的话就执行attached事件
+                if (0 in svEle.parents('body')) {
+                    svEle.triggerHandler('_attached');
+                } else if (isSvShadow(ele)) {
+                    // 判断当前是否svShadow，是的话查找父元素
+                    svEle.parents('[sv-ele]').one('_attached', function() {
+                        // 传递_attached事件
+                        svEle.triggerHandler('_attached');
+                    });
+                }
             }
 
             // 设置别渲染了哈
@@ -2270,7 +2295,11 @@
             // 初始化之前执行的callback
             beforeInit: function() {},
             // 初始化后会执行的callback
-            render: function() {}
+            render: function() {},
+            // 添加进document执行的callback
+            attached: function() {},
+            // 删除后执行的callback
+            detached: function() {}
         };
         // 合并选项
         extend(defaults, options);
@@ -2331,20 +2360,13 @@
 
         //注册数据
         var tagdata = getTagData(tagname);
-        extend(tagdata, {
+        extend(tagdata, defaults, {
             tagname: tagname,
             code: code,
-            attrs: defaults.attrs,
-            props: defaults.props,
-            data: defaults.data,
-            beforeRender: defaults.beforeRender,
-            beforeInit: defaults.beforeInit,
-            render: defaults.render,
-            val: defaults.val,
-            watch: defaults.watch,
             sv: createSmartViewClass(defaults.proto),
-            // 所有依赖的自定义tag
             relys: relys,
+            // 是否添加进body
+            // _attached: 0,
             // 依赖的tag是否完成
             // relyOk: 1
         });
@@ -2643,19 +2665,17 @@
                     par = e.parentNode;
                     e = par;
                 }
-                while (isSvShadow(par))
+                while (par && isSvShadow(par))
             }
 
             // expr
             if ((!expr || (expr && judgeEle(par, expr))) && arr.indexOf(par) == -1) {
-                arr.push(par);
+                par && arr.push(par);
             }
 
         });
         return $$(arr);
     };
-
-
 
     var n_ec = function(tar, func) {
         // 重新过滤元素
@@ -2784,6 +2804,41 @@
 
     // 程序加载完成后，执行以下初始化
     $(function() {
+        // 监听事件初始化
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(e) {
+                if (e.removedNodes && e.removedNodes.length) {
+                    // shear元素 detached 监听
+                    each(e.removedNodes, function(i, e) {
+                        if (e.svRender) {
+                            var tagName = getRenderTagName(e);
+
+                            //获取注册信息
+                            var tagdata = getTagData(tagName);
+
+                            // 触发事件attached事件
+                            tagdata.detached($(e));
+                        }
+                    });
+                }
+
+                if (e.addedNodes && e.addedNodes.length) {
+                    // shear元素 attached 监听
+                    each(e.addedNodes, function(i, e) {
+                        if (e.svRender) {
+                            $(e).trigger('_attached');
+                        }
+                    });
+                }
+            });
+        });
+        observer.observe(document.body, {
+            attributes: false,
+            childList: true,
+            characterData: false,
+            subtree: false,
+        });
+
         $('[sv-ele]');
     });
 })(window, window.$);

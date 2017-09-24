@@ -11,48 +11,43 @@
 </head>
 
 <body>
-
+    <test id="a" sv-ele con="asdasd"></test>
 </body>
 <script>
-    assert = {
-        ok: (...arg) => {
-            console.log(...arg);
-        }
-    };
-    shear.after({
-        tag: "tag-1",
-        render: function() {
-            assert.ok(1, 'after ok');
-        }
-    });
-
     shear.register({
-        template: "<tag-1 sv-register='tag-1'>{{a}} <br> <tag-2 sv-ele b='tag2_ye' sv-tar='t2'> </tag-2> <br> <tag-3 sv-ele></tag-3> <div sv-tar='test'></div> </tag-1>",
-        data: {
-            a: "I am testtag1"
+        template: `
+        <div sv-register="test">
+            <div class="lkk">{{con}}</div>
+            <t2 sv-ele></t2>
+        </div>`,
+        attrs: ['con'],
+        render: function(ele) {
+            console.log('test render 结束', ele);
         },
-        render: function() {
-            assert.ok(1, 'render ok');
+        attached: function(ele) {
+            console.log('test 添加进body结束', ele);
+        },
+        detached: (ele) => {
+            console.log('test 删除 => ', ele);
         }
     });
-
     shear.register({
-        template: "<tag-2 sv-register='tag-2'>{{b}}<span sv-content></span></tag-2>",
-        props: ['b'],
-        data: {
-            b: "tag2"
+        template: `<div sv-register="t2"><div class="lkk2">{{con}}</div></div>`,
+        attrs: ['con'],
+        render: function(ele) {
+            console.log('t2 render 结束', ele);
+        },
+        attached: function(ele) {
+            console.log('t2 添加进body结束', ele);
+        },
+        detached: (ele) => {
+            console.log('t2 删除 => ', ele);
         }
     });
 
-    shear.register({
-        template: "<tag-3 sv-register='tag-3'>{{c}}</tag-3>",
-        data: {
-            c: "tag3"
-        }
-    });
-
-    // var t1 = $('<tag-1 sv-ele>');
-    $('body').append('<tag-1 sv-ele>');
+    setTimeout(() => {
+        $('body').append(' <test sv-ele con="aaaaaaaaaaa"></test>');
+    }, 1000);
 </script>
 
 </html>
